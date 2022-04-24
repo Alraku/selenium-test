@@ -15,9 +15,6 @@ def test_setup():
     driver.quit()
 
 
-def test_method(test_setup):
-    x = 5
-    y = 2
-    # assert x + y == 7, "Assertion failed, Expected 7"
+def test_check_website_title(test_setup):
     print(driver.title)
     assert "Onet" in driver.title, "Assertion Failed"
