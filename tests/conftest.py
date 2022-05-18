@@ -1,5 +1,7 @@
 #coding: utf-8
+from email.policy import default
 import pytest
+import helpers
 
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
@@ -7,22 +9,19 @@ from webdriver_manager.microsoft import EdgeChromiumDriverManager
 from webdriver_manager.chrome import ChromeDriverManager
 
 
-base_url = 'http://www.kurs-selenium.pl/demo'
-mail_url = 'https://10minutemail.com'
-
-
-@pytest.fixture(params=["edge", "safari"], scope='class')
-#def setup(request, browser, url):
-def setup(request):
-    if request.param == "edge":
+#@pytest.fixture(params=["edge", "safari"], scope='class')
+@pytest.fixture(scope='class')
+def setup(request, browser, url):
+#def setup(request):
+    if browser == "edge":
         driver = webdriver.Edge(service = Service(EdgeChromiumDriverManager().install()))
-    elif request.param == "chrome":
+    elif browser == "chrome":
         driver = webdriver.Chrome(service = Service(ChromeDriverManager().install()))
-    elif request.param == "safari":
+    elif browser == "safari":
         driver = webdriver.Safari(service = Service(executable_path='/usr/bin/safaridriver'))
 
     #driver.get(url)
-    driver.get('http://www.kurs-selenium.pl/demo/login')
+    driver.get(helpers.base_url)
     driver.maximize_window()
     request.cls.driver = driver
     
@@ -32,7 +31,7 @@ def setup(request):
 
 #this will get the value of CLI/Hooks
 def pytest_addoption(parser):
-    parser.addoption("--browser")
+    parser.addoption("--browser", default="safari")
     parser.addoption("--url")
 
 
