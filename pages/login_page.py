@@ -1,5 +1,5 @@
-from lib2to3.pgen2 import driver
-from subprocess import TimeoutExpired
+#from lib2to3.pgen2 import driver
+import time
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -19,8 +19,8 @@ class PageLogin():
     def enter_credentials(self, username, password):
         try:
             element_present = EC.presence_of_element_located((By.ID, self.sign_in_button))
-            WebDriverWait(driver, 10).until(element_present)
-        except TimeoutError:
+            WebDriverWait(self.driver, 10).until(element_present)
+        except:
             print("Element Not Found")
 
         self.driver.find_element(By.ID, self.textfield_username).clear()
@@ -30,6 +30,7 @@ class PageLogin():
 
     def click_login_button(self):
         self.driver.find_element(By.ID, self.sign_in_button).click()
+        time.sleep(3)
 
 
     def accept_privacy_dialog(self):

@@ -15,13 +15,8 @@ class TestLogin:
 
 
     @pytest.mark.order(1)
-    def test_login(self):
+    def test_login_user(self):
         self.page_login.accept_privacy_dialog()
-        self.page_login.enter_credentials('testingautomation@protonmail.com', '!qW3Er5%y78i')
+        self.page_login.enter_credentials(helpers.test_username, helpers.test_password)
         self.page_login.click_login_button()
-        time.sleep(10)
-
-
-    @pytest.mark.order(2)
-    def test_website_title(self):
-        assert "Ogłoszenia" in self.driver.title, "Assertion Failed"
+        assert "Mój OLX" in self.driver.title, "Assertion Failed"
