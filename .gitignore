@@ -1,0 +1,7 @@
+gitignore
+.venv
+.vscode
+.pytest_cache
+
+utils/helpers.py
+utils/cookies/cookies.pkl
