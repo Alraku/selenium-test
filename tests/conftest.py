@@ -1,7 +1,7 @@
 #coding: utf-8
 from email.policy import default
 import pytest
-import helpers
+import utils.helpers as helpers
 
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
