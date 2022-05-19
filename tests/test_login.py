@@ -4,6 +4,7 @@ import utils.helpers as helpers
 from selenium.webdriver.common.by import By
 from pages.login_page import PageLogin
 
+
 @pytest.mark.usefixtures("setup")
 class TestLogin:
 
@@ -37,3 +38,5 @@ class TestLogin:
         self.page_login.load_cookie()
         self.page_login.driver.get(helpers.base_url + '/konto')
         assert "Mój OLX" in self.driver.title, "Assertion Failed"
+
+        

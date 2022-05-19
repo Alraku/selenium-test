@@ -1,5 +1,4 @@
 #coding: utf-8
-from email.policy import default
 import pytest
 import utils.helpers as helpers
 

@@ -20,7 +20,7 @@ class PageLogin():
         self.driver = driver
 
     
-    def enter_credentials(self, username, password):
+    def enter_credentials(self, username: str, password: str):
         try:
             element_present = EC.presence_of_element_located((By.ID, self.sign_in_button))
             WebDriverWait(self.driver, 10).until(element_present)
@@ -32,7 +32,7 @@ class PageLogin():
         self.driver.find_element(By.ID, self.textfield_password).send_keys(password)
 
 
-    def click_login_button(self, timeout):
+    def click_login_button(self, timeout: int = 3):
         self.driver.find_element(By.ID, self.sign_in_button).click()
         time.sleep(timeout)
 
