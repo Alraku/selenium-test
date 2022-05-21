@@ -7,7 +7,7 @@
 This project was made for learning reasons in order to gain knowledge and experience in Test Automation.
 	
 ## Technologies
-Project is created with:
+Project is created mainly with:
 * Python: 3.9.10
 * Selenium for Python: 4.1.3+
 * PyTest: 7.1.1+
@@ -15,7 +15,7 @@ Project is created with:
 versions of the packages might be updated within time
 	
 ## Setup
-To run this project, it is recommended to create virtual environment and then install all dependencies:
+To run this project, it is recommended to create virtual environment and then install all dependencies (please refer to requirements.txt file within project file tree):
 
 ```
 $ python -m venv .venv 
