@@ -1,6 +1,7 @@
 #coding: utf-8
 import pytest
-import utils.helpers as helpers
+import logging
+import utils.globals as globals
 
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
@@ -11,7 +12,6 @@ from webdriver_manager.chrome import ChromeDriverManager
 #@pytest.fixture(params=["edge", "safari"], scope='class')
 @pytest.fixture(scope='class')
 def setup(request, browser, url):
-#def setup(request):
     if browser == "edge":
         driver = webdriver.Edge(service = Service(EdgeChromiumDriverManager().install()))
     elif browser == "chrome":
@@ -19,13 +19,19 @@ def setup(request, browser, url):
     elif browser == "safari":
         driver = webdriver.Safari(service = Service(executable_path='/usr/bin/safaridriver'))
 
-    #driver.get(url)
-    driver.get(helpers.base_url)
+    driver.get(globals.base_url)
     driver.maximize_window()
     request.cls.driver = driver
     
     yield driver
     driver.quit()
+
+
+@pytest.fixture(scope='class')
+def logger(request):
+    logger = logging.getLogger(__name__)
+    request.cls.logger = logger
+    return logger
 
 
 #this will get the value of CLI/Hooks

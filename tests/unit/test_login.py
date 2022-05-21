@@ -1,5 +1,5 @@
 import pytest
-import utils.helpers as helpers
+import utils.globals as globals
 
 from selenium.webdriver.common.by import By
 from pages.login_page import PageLogin
@@ -11,13 +11,13 @@ class TestLogin:
     @pytest.fixture()
     def class_setup(self):
         self.page_login = PageLogin(self.driver)
-        self.page_login.driver.get(helpers.base_url + '/konto')
+        self.page_login.driver.get(globals.base_url + '/konto')
 
 
     @pytest.mark.order(1)
     def test_login_valid_user(self, class_setup):
         self.page_login.accept_privacy_dialog()
-        self.page_login.enter_credentials(helpers.test_email, helpers.test_password)
+        self.page_login.enter_credentials(globals.test_email, globals.test_password)
         self.page_login.click_login_button(timeout = 5)
         self.page_login.save_cookie()
         assert "Mój OLX" in self.driver.title, "Assertion Failed"
@@ -33,10 +33,10 @@ class TestLogin:
 
 
     @pytest.mark.order(3)
-    def test_login_cookie(self):
+    def test_login_with_saved_cookie(self):
         self.page_login = PageLogin(self.driver)
         self.page_login.load_cookie()
-        self.page_login.driver.get(helpers.base_url + '/konto')
+        self.page_login.driver.get(globals.base_url + '/konto')
         assert "Mój OLX" in self.driver.title, "Assertion Failed"
 
         
