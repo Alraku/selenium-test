@@ -5,7 +5,7 @@ from pages.login_page import PageLogin
 
 
 @pytest.mark.usefixtures("setup")
-class TestSeachbox:
+class TestSearchbox:
 
     @pytest.fixture()
     def class_setup(self):
@@ -14,7 +14,7 @@ class TestSeachbox:
 
 
     @pytest.mark.order(1)
-    def test_seachbox_one(self, class_setup):
+    def test_searchbox_phrase_one(self, class_setup):
         self.page_login.accept_privacy_dialog()
-        self.page_home.search_phrase(phrase_to_search='Sony A6300', location='Gdańsk')
-        assert "Sony A6300 w Gdańsk" in self.driver.title, "Assertion Failed"
+        self.page_home.search_phrase(phrase_to_search='Drukarka', location='Gdańsk')
+        assert "Drukarka w Gdańsk" in self.driver.title, "Assertion Failed"
