@@ -23,8 +23,7 @@ class PageHome():
 
         try:
             element_present = EC.presence_of_element_located((By.CLASS_NAME, self.city_field_suggestion))
-            WebDriverWait(self.driver, 3).until(element_present).click()
-            #element_present.click()
+            WebDriverWait(self.driver, 3).until(element_present)
         except:
             print("Element Not Found")
 
