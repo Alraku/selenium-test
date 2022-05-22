@@ -38,7 +38,12 @@ class PageLogin():
 
 
     def accept_privacy_dialog(self):
-        self.driver.find_element(By.ID, self.privacy_dialog_button).click()
+        try:
+            element = WebDriverWait(self.driver, 3).until(
+                EC.presence_of_element_located((By.ID, self.privacy_dialog_button)))
+            element.click()
+        except:
+            print("Element Not Found")
 
 
     def save_cookie(self):

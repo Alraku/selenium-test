@@ -19,7 +19,6 @@ def setup(request, browser, url):
     elif browser == "safari":
         driver = webdriver.Safari(service = Service(executable_path='/usr/bin/safaridriver'))
 
-    driver.get(globals.base_url)
     driver.maximize_window()
     request.cls.driver = driver
     
