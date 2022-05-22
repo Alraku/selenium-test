@@ -23,7 +23,7 @@ class PageLogin():
     def enter_credentials(self, username: str, password: str):
         try:
             element_present = EC.presence_of_element_located((By.ID, self.sign_in_button))
-            WebDriverWait(self.driver, 10).until(element_present)
+            WebDriverWait(self.driver, 5).until(element_present)
         except:
             print("Element Not Found")
 

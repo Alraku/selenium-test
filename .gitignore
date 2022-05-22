@@ -3,5 +3,5 @@ gitignore
 .vscode
 .pytest_cache
 
-utils/helpers.py
+utils/globals.py
 utils/cookies/cookies.pkl
