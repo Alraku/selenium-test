@@ -16,6 +16,5 @@ class TestSearchbox:
     @pytest.mark.order(1)
     def test_searchbox_phrase_one(self, class_setup):
         self.page_login.accept_privacy_dialog()
-        self.logger.info('Searching for phrase...:')
-        self.page_home.search_phrase(phrase_to_search='Drukarka', location='Gdańsk')
-        assert "Drukarka w Gdańsk" in self.driver.title, "Assertion Failed"
+        self.page_home.search_phrase(search_term='Drukarka', location='Gdańsk')
+        assert "Drukarka w Gdańsk" in self.driver.title, "Assertion Failed - Title does not match"
