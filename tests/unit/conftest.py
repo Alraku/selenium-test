@@ -7,6 +7,7 @@ from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.microsoft import EdgeChromiumDriverManager
 from webdriver_manager.chrome import ChromeDriverManager
+from selenium.webdriver.safari.options import Options as SafariOptions
 
 
 #@pytest.fixture(params=["edge", "safari"], scope='class')
@@ -17,7 +18,8 @@ def setup(request, browser, url):
     elif browser == "chrome":
         driver = webdriver.Chrome(service = Service(ChromeDriverManager().install()))
     elif browser == "safari":
-        driver = webdriver.Safari(service = Service(executable_path='/usr/bin/safaridriver'))
+        safari_options = SafariOptions()
+        driver = webdriver.Safari(service = Service(executable_path='/usr/bin/safaridriver'), options=safari_options)
 
     driver.maximize_window()
     request.cls.driver = driver

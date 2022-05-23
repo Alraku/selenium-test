@@ -13,7 +13,7 @@ class PageLogin():
     sign_in_button = 'se_userLogin'
     privacy_dialog_button = "onetrust-accept-btn-handler"
 
-    cookie_path = "/Users/alraku/Documents/Visual Studio Code/Projects/Test-Automation/utils/cookies/cookies.pkl"
+    cookie_path = "utils/cookies/cookies.pkl"
 
 
     def __init__(self, driver):
