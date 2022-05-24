@@ -2,7 +2,7 @@
 * [General Info](#general-info)
 * [Technologies](#technologies)
 * [Setup](#setup)
-* [Additional Files] (#additional-files)
+* [Additional-Files](#additional-files)
 
 ## General info
 This project was made for learning reasons in order to gain knowledge and experience in Test Automation.
@@ -38,7 +38,7 @@ $ echo $PYTHONPATH
 
 ## Additional Files
 
-For proper working of all tests it's important to run "test_login_valid_user" as first test because it creates and saves cookie file in utils/cookies that will be needed in tests that require logged user in.
+For proper working of all tests it's important to run "test_login_valid_user" as first test because it creates and saves cookie file in utils/cookies that will be needed in tests that require user logged in.
 
 You may also want to create your own test account and put login credentials in file with global values.
 It is recommended to create such file as globals.py in utils/globals.py.
