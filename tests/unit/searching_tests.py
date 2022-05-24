@@ -1,11 +1,10 @@
-import time
 import pytest
 import utils.globals as globals
 
 from pages.home_page import PageHome
 from pages.login_page import PageLogin
-from data.test_data import testdata_searchbox
-from selenium.webdriver.common.by import By
+from data.test_data import testdata_searchbox, testdata_searchbox_filters
+from pages.search_results_page import PageSearchResults
 
 
 @pytest.mark.usefixtures("setup", "logger")
@@ -15,6 +14,7 @@ class TestSearchbox:
     def class_setup(self):
         self.page_home = PageHome(self.driver)
         self.page_login = PageLogin(self.driver)
+        self.page_search_results = PageSearchResults(self.driver)
         self.driver.get(globals.base_url)
 
 
@@ -27,16 +27,19 @@ class TestSearchbox:
 
 
     @pytest.mark.order(2)
-    def test_search_in_descriptions(self, class_setup):
+    @pytest.mark.parametrize("checkbox_name", testdata_searchbox_filters)
+    def test_search_in_descriptions(self, class_setup, checkbox_name):
         self.page_login.accept_privacy_dialog()
         self.page_home.search_phrase(search_term="Vintage", location="Toruń")
-        no_of_adverts = self.driver.find_element(By.CSS_SELECTOR, "div[data-testid='total-count']").text
-        number1 = int("".join(filter(str.isdigit, no_of_adverts)))
-        self.logger.info(number1)
-        self.driver.find_element(By.ID, "description").click()
-        time.sleep(3)
-        no_of_adverts = self.driver.find_element(By.CSS_SELECTOR, "div[data-testid='total-count']").text
-        number2 = int("".join(filter(str.isdigit, no_of_adverts)))
-        self.logger.info(number2)
-        assert number2 >= number1, "Assertion Failed - Number is not greater or equal"
-        
+        ads_before_checkbox = self.page_search_results.extract_number_from_str()
+
+        self.page_search_results.click_checkbox(checkbox_name)
+
+        element_updated = self.page_search_results.check_if_element_reloaded()
+        ads_after_checkbox = self.page_search_results.extract_number_from_str()
+
+        assert element_updated != None, "None type of element, assertion failed."
+        assert ads_after_checkbox != ads_before_checkbox, "The number of ads has not increased"
+
+
+    

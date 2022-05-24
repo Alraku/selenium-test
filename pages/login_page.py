@@ -1,4 +1,4 @@
-#from lib2to3.pgen2 import driver
+import os
 import time
 import json 
 
@@ -6,14 +6,14 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
-class PageLogin():
+class PageLogin:
 
     textfield_username = "userEmail"
     textfield_password = "userPass"
     sign_in_button = 'se_userLogin'
     privacy_dialog_button = "onetrust-accept-btn-handler"
 
-    cookie_path = "utils/cookies/cookies.pkl"
+    cookie_path = "/../utils/cookies/cookies.pkl"
 
 
     def __init__(self, driver):
@@ -47,12 +47,12 @@ class PageLogin():
 
 
     def save_cookie(self):
-        with open(self.cookie_path, 'w') as filehandler:
+        with open(os.path.dirname(__file__) + self.cookie_path, 'w') as filehandler:
             json.dump(self.driver.get_cookies(), filehandler)
 
 
     def load_cookie(self):
-        with open(self.cookie_path, 'r') as cookiefile:
+        with open(os.path.dirname(__file__) + self.cookie_path, 'r') as cookiefile:
             cookies = json.load(cookiefile)
         for cookie in cookies:
             self.driver.add_cookie(cookie)

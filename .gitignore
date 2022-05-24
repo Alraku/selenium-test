@@ -5,3 +5,4 @@ gitignore
 
 utils/globals.py
 utils/cookies/cookies.pkl
+utils/.DS_Store
