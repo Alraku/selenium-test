@@ -1,9 +1,10 @@
 import pytest
 import utils.globals as globals
+import time
 
-from pages.login_page import PageLogin
 from pages.add_advert_page import PageAddAdvert
 from utils.helpers import CookieOperations
+from data.test_data import testdata_advert_form_fields
 
 
 @pytest.mark.usefixtures("setup", "logger")
@@ -18,8 +19,10 @@ class TestAddAdvert:
 
 
     @pytest.mark.order(1)
-    def test_add_advert_basic(self, class_setup):
+    @pytest.mark.parametrize('advert', testdata_advert_form_fields)
+    def test_add_advert_basic(self, class_setup, advert):
         #self.page_add_advert.close_confirmation_dialog()
-        self.page_add_advert.fill_in_fields('Smartphone Iphone 13 Pro - Nowy, gwarancja',
-            'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris gravida quam eget ligula erat curae.')
+        self.page_add_advert.advert = advert
+        self.page_add_advert.fill_in_fields()
         self.page_add_advert.submit_advert()
+        time.sleep(5)
