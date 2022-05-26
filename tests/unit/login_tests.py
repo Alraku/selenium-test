@@ -3,6 +3,7 @@ import utils.globals as globals
 
 from selenium.webdriver.common.by import By
 from pages.login_page import PageLogin
+from utils.helpers import CookieOperations
 
 
 @pytest.mark.usefixtures("setup")
@@ -11,15 +12,15 @@ class TestLogin:
     @pytest.fixture()
     def class_setup(self):
         self.page_login = PageLogin(self.driver)
-        self.page_login.driver.get(globals.base_url + '/konto')
+        self.page_login.driver.get(globals.BASE_URL + '/konto')
 
 
     @pytest.mark.order(1)
     def test_login_valid_user(self, class_setup):
         self.page_login.accept_privacy_dialog()
-        self.page_login.enter_credentials(globals.test_email, globals.test_password)
+        self.page_login.enter_credentials(globals.TEST_EMAIL, globals.TEST_PASSWORD)
         self.page_login.click_login_button(timeout = 5)
-        self.page_login.save_cookie()
+        CookieOperations.save_cookie(self.driver)
         assert "Mój OLX" in self.driver.title, "Assertion Failed"
 
 
@@ -34,9 +35,8 @@ class TestLogin:
 
     @pytest.mark.order(3)
     def test_login_with_saved_cookie(self):
-        self.page_login = PageLogin(self.driver)
-        self.page_login.load_cookie()
-        self.page_login.driver.get(globals.base_url + '/konto')
+        CookieOperations.load_cookie(self.driver)
+        self.driver.get(globals.BASE_URL + '/konto')
         assert "Mój OLX" in self.driver.title, "Assertion Failed"
 
         

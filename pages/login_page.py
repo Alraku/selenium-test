@@ -1,6 +1,4 @@
-import os
 import time
-import json 
 
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -44,15 +42,3 @@ class PageLogin:
             element.click()
         except:
             print("Element Not Found")
-
-
-    def save_cookie(self):
-        with open(os.path.dirname(__file__) + self.cookie_path, 'w') as filehandler:
-            json.dump(self.driver.get_cookies(), filehandler)
-
-
-    def load_cookie(self):
-        with open(os.path.dirname(__file__) + self.cookie_path, 'r') as cookiefile:
-            cookies = json.load(cookiefile)
-        for cookie in cookies:
-            self.driver.add_cookie(cookie)

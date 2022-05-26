@@ -9,7 +9,6 @@ class PageSearchResults:
 
     number_of_ads_found = "div[data-testid='total-count']"
     results_skeleton_wrapper = "ul[data-testid='qa-skeleton-wrapper']"
-    description_checkbox_id = "description"
 
     def __init__(self, driver):
         self.driver = driver
