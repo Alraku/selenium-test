@@ -2,7 +2,7 @@
 * [General Info](#general-info)
 * [Technologies](#technologies)
 * [Setup](#setup)
-* [Additional-Files](#additional-files)
+* [Additional Files](#additional-files)
 
 ## General info
 This project was made for learning reasons in order to gain knowledge and experience in Test Automation.
