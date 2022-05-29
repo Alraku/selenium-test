@@ -32,15 +32,18 @@ class PageAddAdvert:
 
     @property
     def advert(self):
+        """Getter for advert property."""
         return self._advert
 
 
     @advert.setter
     def advert(self, advert):
+        """Setter for advert property."""
         self._advert = advert
 
 
     def fill_in_fields(self):
+        """Groups every small functions that fill formfiled on page."""
         self.fill_in_title()
         self.fill_in_suggested_category()
         self.fill_in_description()
@@ -50,6 +53,7 @@ class PageAddAdvert:
 
 
     def fill_in_title(self):
+        """Waits for title form field to appear and fills a value in."""
         try:
             element = WebDriverWait(self.driver, 3).until(
                 EC.element_to_be_clickable((By.XPATH, self.textfield_title))
@@ -61,8 +65,8 @@ class PageAddAdvert:
 
 
     def fill_in_suggested_category(self):
+        """Opens category tray, waits for suggested category to appear and chooses it."""
         try:
-            # Select category button and choose suggested category 
             self.driver.find_element(By.XPATH, self.button_category).click()
             element = WebDriverWait(self.driver, 3).until(
                 EC.element_to_be_clickable((By.XPATH, self.button_suggested_category))
@@ -74,6 +78,7 @@ class PageAddAdvert:
 
 
     def upload_photos(self):
+        """Safari unsupported. Uploads photos from test data gallery."""
         for i in range(1, 4):
             self.driver.find_element(
                 By.ID, "photo-attachment-files").send_keys(globals.ROOT_DIR + f"/data/gallery/{i}.jpg"
@@ -81,6 +86,7 @@ class PageAddAdvert:
 
 
     def fill_in_description(self):
+        """Searches for description form field and fills a value in."""
         self.driver.execute_script("window.scrollTo(0, 850)")
         try:
             element = self.driver.find_element(By.XPATH, self.textfield_description)
@@ -91,9 +97,9 @@ class PageAddAdvert:
 
 
     def fill_in_additional_info(self):
+        """Searches for item condition dropdown list and chooses specific option."""
         self.check_price_value()
         self.check_advert_type()
-        # Choose item condition from dropdown list
         self.driver.find_element(By.XPATH, self.button_item_condition).click()
         try: 
             option = self._advert.get('item_condition')
@@ -107,6 +113,7 @@ class PageAddAdvert:
 
 
     def fill_in_contact_info(self):
+        """Searches for contact location form field and fills a value in."""
         element = self.driver.find_element(By.NAME, self.location)
         element.clear()
         element = self.driver.find_element(By.NAME, self.location).send_keys(self._advert.get('location'))
@@ -123,17 +130,22 @@ class PageAddAdvert:
 
 
     def preview_advert(self):
+        """Redirects to new page containing pre-view of new advert."""
         pass
 
 
     def submit_advert(self):
+        """Redirects to confirmation page and creates new advert."""
         self.driver.find_element(By.XPATH, self.submit_button).click()
         time.sleep(3)
 
 
     def check_price_value(self):
+        """
+        Checks if string stored in price key is digit and if so fills form field.
+        Otherwise selects for free or exchange options.
+        """
         price = self._advert.get('price')
-        # If price is digit then fill in value, else choose option
         if price.isdigit():
             self.driver.find_element(By.ID, self.textfield_price).send_keys(self._advert.get('price'))
         elif price == "free":
@@ -143,8 +155,11 @@ class PageAddAdvert:
 
     
     def check_advert_type(self):
+        """
+        Checks if string stored in advert type key is private or business.
+        Selects proper type of advert.
+        """
         type = self._advert.get('advert_type')
-        # Choose private or business type of advert
         if type == "private":
             self.driver.find_element(By.XPATH, self.button_type_private).click()
         elif type == "business":
@@ -152,6 +167,7 @@ class PageAddAdvert:
 
 
     def disable_delivery(self):
+        """Disables option for integrated delivery system."""
         self.driver.execute_script("window.scrollTo(0, 1800)")
         try:
             element = WebDriverWait(self.driver, 3).until(
@@ -164,6 +180,7 @@ class PageAddAdvert:
 
 
     def verify_new_advert(self):
+        """Closes pop-up windows and returns text value of newly created advert."""
         try:
             element = WebDriverWait(self.driver, 3).until(
                 EC.element_to_be_clickable(By.XPATH, '//*[@id="root"]/div[1]/div[4]/div/div[2]/button')).click()
