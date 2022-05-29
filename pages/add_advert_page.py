@@ -1,5 +1,4 @@
 import time
-import logging
 import utils.globals as globals
 
 from selenium.webdriver.common.by import By
@@ -52,7 +51,9 @@ class PageAddAdvert:
 
     def fill_in_title(self):
         try:
-            element = WebDriverWait(self.driver, 3).until(EC.element_to_be_clickable((By.XPATH, self.textfield_title)))
+            element = WebDriverWait(self.driver, 3).until(
+                EC.element_to_be_clickable((By.XPATH, self.textfield_title))
+            )
             element.send_keys(self._advert.get('title'))
         except TimeoutException as Exception:
             print("Element not found in desired time")
@@ -63,7 +64,9 @@ class PageAddAdvert:
         try:
             # Select category button and choose suggested category 
             self.driver.find_element(By.XPATH, self.button_category).click()
-            element = WebDriverWait(self.driver, 3).until(EC.element_to_be_clickable((By.XPATH, self.button_suggested_category)))
+            element = WebDriverWait(self.driver, 3).until(
+                EC.element_to_be_clickable((By.XPATH, self.button_suggested_category))
+            )
             element.click()
         except TimeoutException as Exception:
             print("Element not found in desired time")
@@ -72,7 +75,9 @@ class PageAddAdvert:
 
     def upload_photos(self):
         for i in range(1, 4):
-            self.driver.find_element(By.ID, "photo-attachment-files").send_keys(globals.ROOT_DIR + f"/data/gallery/{i}.jpg")
+            self.driver.find_element(
+                By.ID, "photo-attachment-files").send_keys(globals.ROOT_DIR + f"/data/gallery/{i}.jpg"
+            )
 
 
     def fill_in_description(self):
@@ -92,7 +97,9 @@ class PageAddAdvert:
         self.driver.find_element(By.XPATH, self.button_item_condition).click()
         try: 
             option = self._advert.get('item_condition')
-            element = self.driver.find_element(By.XPATH, f"//*[@id='posting-form']/main/div[1]/div[4]/div[2]/ul/li[2]/div/div/ul/li[{option}]")
+            element = self.driver.find_element(
+                By.XPATH, f"//*[@id='posting-form']/main/div[1]/div[4]/div[2]/ul/li[2]/div/div/ul/li[{option}]"
+            )
             element.click()
         except NoSuchElementException as Exception:
             print("Element not found in desired time")
@@ -104,7 +111,11 @@ class PageAddAdvert:
         element.clear()
         element = self.driver.find_element(By.NAME, self.location).send_keys(self._advert.get('location'))
         try:
-            element = WebDriverWait(self.driver, 3).until(EC.element_to_be_clickable((By.XPATH, "//*[@id='posting-form']/main/div[1]/div[7]/div[2]/div/div/div/div/div/div/div[2]/li")))
+            element = WebDriverWait(self.driver, 3).until(
+                EC.element_to_be_clickable(
+                    By.XPATH, "//*[@id='posting-form']/main/div[1]/div[7]/div[2]/div/div/div/div/div/div/div[2]/li"
+                )
+            )
             element.click()
         except TimeoutException as Exception:
             print("Element not found in desired time")
@@ -143,7 +154,9 @@ class PageAddAdvert:
     def disable_delivery(self):
         self.driver.execute_script("window.scrollTo(0, 1800)")
         try:
-            element = WebDriverWait(self.driver, 3).until(EC.element_to_be_clickable((By.XPATH, self.switch_delivery)))
+            element = WebDriverWait(self.driver, 3).until(
+                EC.element_to_be_clickable(By.XPATH, self.switch_delivery)
+            )
             element.click()
         except TimeoutException as Exception:
             print("Element not found in desired time")
@@ -152,9 +165,12 @@ class PageAddAdvert:
 
     def verify_new_advert(self):
         try:
-            element = WebDriverWait(self.driver, 3).until(EC.element_to_be_clickable((By.XPATH, '//*[@id="root"]/div[1]/div[4]/div/div[2]/button'))).click()
-            element = WebDriverWait(self.driver, 3).until(EC.element_to_be_clickable((By.XPATH, '//*[@id="root"]/div[1]/div[3]/div/div/footer/button/span/span'))).click()
-            element = WebDriverWait(self.driver, 3).until(EC.element_to_be_clickable((By.XPATH, '//*[@id="root"]/div[1]/div[2]/div/div[3]/div/div[2]/div/div[1]/div[2]/div[1]/h5/a')))
+            element = WebDriverWait(self.driver, 3).until(
+                EC.element_to_be_clickable(By.XPATH, '//*[@id="root"]/div[1]/div[4]/div/div[2]/button')).click()
+            element = WebDriverWait(self.driver, 3).until(
+                EC.element_to_be_clickable(By.XPATH, '//*[@id="root"]/div[1]/div[3]/div/div/footer/button/span/span')).click()
+            element = WebDriverWait(self.driver, 3).until(
+                EC.element_to_be_clickable(By.XPATH, '//*[@id="root"]/div[1]/div[2]/div/div[3]/div/div[2]/div/div[1]/div[2]/div[1]/h5/a'))
             time.sleep(3)
             return element.get_attribute("text")
         except TimeoutException as Exception:
