@@ -29,6 +29,7 @@ class TestLogin:
         self.page_login.accept_privacy_dialog()
         self.page_login.enter_credentials('bademail@email.com', 'badpassword')
         self.page_login.click_login_button(timeout = 5)
+        #TODO: przeniesc do POMa
         invalid_data_label = self.driver.find_element(By.XPATH, '//label[@for="userPass" and @class="error"]')
         assert "Nieprawidłowy login lub hasło" == invalid_data_label.text
 

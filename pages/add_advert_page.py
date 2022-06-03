@@ -119,9 +119,9 @@ class PageAddAdvert:
         element = self.driver.find_element(By.NAME, self.location).send_keys(self._advert.get('location'))
         try:
             element = WebDriverWait(self.driver, 3).until(
-                EC.element_to_be_clickable(
+                EC.element_to_be_clickable((
                     By.XPATH, "//*[@id='posting-form']/main/div[1]/div[7]/div[2]/div/div/div/div/div/div/div[2]/li"
-                )
+                ))
             )
             element.click()
         except TimeoutException as Exception:
@@ -171,7 +171,7 @@ class PageAddAdvert:
         self.driver.execute_script("window.scrollTo(0, 1800)")
         try:
             element = WebDriverWait(self.driver, 3).until(
-                EC.element_to_be_clickable(By.XPATH, self.switch_delivery)
+                EC.element_to_be_clickable((By.XPATH, self.switch_delivery))
             )
             element.click()
         except TimeoutException as Exception:
@@ -183,11 +183,11 @@ class PageAddAdvert:
         """Closes pop-up windows and returns text value of newly created advert."""
         try:
             element = WebDriverWait(self.driver, 3).until(
-                EC.element_to_be_clickable(By.XPATH, '//*[@id="root"]/div[1]/div[4]/div/div[2]/button')).click()
+                EC.element_to_be_clickable((By.XPATH, '//*[@id="root"]/div[1]/div[4]/div/div[2]/button'))).click()
             element = WebDriverWait(self.driver, 3).until(
-                EC.element_to_be_clickable(By.XPATH, '//*[@id="root"]/div[1]/div[3]/div/div/footer/button/span/span')).click()
+                EC.element_to_be_clickable((By.XPATH, '//*[@id="root"]/div[1]/div[3]/div/div/footer/button/span/span'))).click()
             element = WebDriverWait(self.driver, 3).until(
-                EC.element_to_be_clickable(By.XPATH, '//*[@id="root"]/div[1]/div[2]/div/div[3]/div/div[2]/div/div[1]/div[2]/div[1]/h5/a'))
+                EC.element_to_be_clickable((By.XPATH, '//*[@id="root"]/div[1]/div[2]/div/div[3]/div/div[2]/div/div[1]/div[2]/div[1]/h5/a')))
             time.sleep(3)
             return element.get_attribute("text")
         except TimeoutException as Exception:
