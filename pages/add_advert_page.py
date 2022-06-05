@@ -9,20 +9,19 @@ from selenium.common.exceptions import TimeoutException, NoSuchElementException
 
 class PageAddAdvert:
 
-    textfield_title = '//*[@id="posting-form"]/main/div[1]/div[1]/div[1]/div/div/div/div/textarea'
-    button_category = '//*[@id="posting-form"]/main/div[1]/div[1]/div[2]/div'
-    button_suggested_category = '//*[@id="posting-form"]/main/div[1]/div[1]/div[2]/div/div[2]/div/div/button'
+    textfield_title = '//textarea[@data-cy="posting-title"]'
+    button_category = '//div[@data-cy="posting-select-category"]'
+    button_suggested_category = '//button[@data-cy="posting-suggested-categories-item"]'
     textfield_description = '//textarea[@name="description"]'
     textfield_price = 'parameters.price.price'
-    button_free = '//*[@id="posting-form"]/main/div[1]/div[4]/div[1]/div/div/div[1]/button[2]'
-    button_exchange = '//*[@id="posting-form"]/main/div[1]/div[4]/div[1]/div/div/div[1]/button[3]'
-    button_type_private = '//*[@id="posting-form"]/main/div[1]/div[4]/div[2]/ul/li[1]/div/div/div[1]/button'
-    button_type_business = '//*[@id="posting-form"]/main/div[1]/div[4]/div[2]/ul/li[1]/div/div/div[2]/button'
-    button_item_condition = '//*[@id="posting-form"]/main/div[1]/div[4]/div[2]/ul/li[2]/div/div/div/button[1]'
-    location = 'city_id'
-    contact_person = 'person'
-    switch_delivery = '//*[@id="posting-form"]/main/div[1]/div[5]/div/div/div[1]/label/h6'
-    submit_button = '//*[@id="posting-form"]/main/div[1]/div[8]/div/button[2]'
+    button_free = '//button[text()="Za darmo"]'
+    button_exchange = '//button[text()="Zamienię"]'
+    button_type_private = '//button[text()="Prywatne"]'
+    button_type_business = '//button[text()="Firmowe"]'
+    button_item_condition = '//button[@placeholder="Wybierz"]'
+    location = '//input[@data-cy="location-search-input"]'
+    switch_delivery = '//h6[text()="Dodaj Przesyłkę OLX"]'
+    submit_button = '//button[@type="submit"]'
 
 
     def __init__(self, driver):
@@ -114,9 +113,9 @@ class PageAddAdvert:
 
     def fill_in_contact_info(self):
         """Searches for contact location form field and fills a value in."""
-        element = self.driver.find_element(By.NAME, self.location)
+        element = self.driver.find_element(By.XPATH, self.location)
         element.clear()
-        element = self.driver.find_element(By.NAME, self.location).send_keys(self._advert.get('location'))
+        element = self.driver.find_element(By.XPATH, self.location).send_keys(self._advert.get('location'))
         try:
             element = WebDriverWait(self.driver, 3).until(
                 EC.element_to_be_clickable((

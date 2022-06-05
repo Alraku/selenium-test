@@ -45,7 +45,9 @@ class PageHome:
         #self.driver.find_element(By.ID, self.add_advert_button).click()
         self.driver.get(globals.base_url + '/nowe-ogloszenie')
         try:
-            element = WebDriverWait(self.driver, 3).until(EC.element_to_be_clickable((By.CLASS_NAME, "css-spwpto")))
+            element = WebDriverWait(self.driver, 3).until(
+                EC.element_to_be_clickable((
+                    By.CLASS_NAME, "css-spwpto")))
             element.click()
         except TimeoutException as Exception:
             print("Element not found in desired time")

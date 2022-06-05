@@ -1,3 +1,4 @@
+import time
 import pytest
 import utils.globals as globals
 
@@ -12,7 +13,7 @@ class TestLogin:
     @pytest.fixture()
     def class_setup(self):
         self.page_login = PageLogin(self.driver)
-        self.page_login.driver.get(globals.BASE_URL + '/konto')
+        self.driver.get(globals.BASE_URL + '/konto')
 
 
     @pytest.mark.order(1)
@@ -21,7 +22,7 @@ class TestLogin:
         self.page_login.enter_credentials(globals.TEST_EMAIL, globals.TEST_PASSWORD)
         self.page_login.click_login_button(timeout = 5)
         CookieOperations.save_cookie(self.driver)
-        assert "Mój OLX" in self.driver.title, "Assertion Failed"
+        assert "/mojolx" in self.driver.current_url, "Assertion failed, address doesn't match."
 
 
     @pytest.mark.order(2)
@@ -29,15 +30,14 @@ class TestLogin:
         self.page_login.accept_privacy_dialog()
         self.page_login.enter_credentials('bademail@email.com', 'badpassword')
         self.page_login.click_login_button(timeout = 5)
-        #TODO: przeniesc do POMa
-        invalid_data_label = self.driver.find_element(By.XPATH, '//label[@for="userPass" and @class="error"]')
-        assert "Nieprawidłowy login lub hasło" == invalid_data_label.text
+        assert self.page_login.check_invalid_login_label(), "Assertion failed, text of the element doesn't match."
 
 
     @pytest.mark.order(3)
     def test_login_with_saved_cookie(self):
+        self.driver.get(globals.BASE_URL)
         CookieOperations.load_cookie(self.driver)
         self.driver.get(globals.BASE_URL + '/konto')
-        assert "Mój OLX" in self.driver.title, "Assertion Failed"
+        assert "/mojolx" in self.driver.current_url, "Assertion failed, address doesn't match."
 
         

@@ -3,13 +3,15 @@ import time
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import NoSuchElementException, TimeoutException
 
 class PageLogin:
 
-    textfield_username = "userEmail"
-    textfield_password = "userPass"
-    sign_in_button = 'se_userLogin'
-    privacy_dialog_button = "onetrust-accept-btn-handler"
+    textfield_username = '//*[@id="userEmail"]'
+    textfield_password = '//*[@id="userPass"]'
+    sign_in_button = '//*[@id="se_userLogin"]'
+    privacy_dialog_button = '//*[@id="onetrust-accept-btn-handler"]'
+    label_invalid_cred = '//label[@for="userPass" and @class="error"]'
 
     cookie_path = "/../utils/cookies/cookies.pkl"
 
@@ -20,25 +22,42 @@ class PageLogin:
     
     def enter_credentials(self, username: str, password: str):
         try:
-            element_present = EC.presence_of_element_located((By.ID, self.sign_in_button))
-            WebDriverWait(self.driver, 5).until(element_present)
-        except:
-            print("Element Not Found")
+            element = WebDriverWait(self.driver, 5).until(
+                EC.presence_of_element_located((
+                    By.XPATH, self.textfield_username))).send_keys(username)
 
-        self.driver.find_element(By.ID, self.textfield_username).clear()
-        self.driver.find_element(By.ID, self.textfield_username).send_keys(username)
-        self.driver.find_element(By.ID, self.textfield_password).send_keys(password)
+            element = self.driver.find_element(
+                By.XPATH, self.textfield_password).send_keys(password)
+
+        except TimeoutException as Exception:
+            print("Element not found in desired time")
+            raise Exception
 
 
     def click_login_button(self, timeout: int = 3):
-        self.driver.find_element(By.ID, self.sign_in_button).click()
+        self.driver.find_element(By.XPATH, self.sign_in_button).click()
         time.sleep(timeout)
 
 
     def accept_privacy_dialog(self):
         try:
             element = WebDriverWait(self.driver, 3).until(
-                EC.presence_of_element_located((By.ID, self.privacy_dialog_button)))
+                EC.presence_of_element_located((
+                    By.XPATH, self.privacy_dialog_button)))
             element.click()
-        except:
-            print("Element Not Found")
+
+        except TimeoutException as Exception:
+            print("Element not found in desired time")
+            raise Exception
+
+
+    def check_invalid_login_label(self):
+        try:
+            element = WebDriverWait(self.driver, 3).until(
+                EC.presence_of_element_located((
+                    By.XPATH, self.label_invalid_cred)))
+            return element.text == "Nieprawidłowy login lub hasło"
+
+        except TimeoutException as Exception:
+            print("Element not found in desired time")
+            raise Exception
