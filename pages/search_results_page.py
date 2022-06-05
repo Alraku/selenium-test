@@ -16,7 +16,9 @@ class PageSearchResults:
 
     def check_if_element_reloaded(self):
         try:
-            element_present = WebDriverWait(self.driver, 2).until(EC.presence_of_element_located((By.CSS_SELECTOR, self.results_skeleton_wrapper)))
+            element_present = WebDriverWait(self.driver, 2).until(
+                EC.presence_of_element_located((
+                    By.CSS_SELECTOR, self.results_skeleton_wrapper)))
             time.sleep(3)
             return element_present
 
@@ -26,7 +28,8 @@ class PageSearchResults:
             
 
     def extract_number_from_str(self):
-        return int("".join(filter(str.isdigit, self.driver.find_element(By.CSS_SELECTOR, self.number_of_ads_found).text)))
+        return int("".join(filter(str.isdigit, self.driver.find_element(
+            By.CSS_SELECTOR, self.number_of_ads_found).text)))
 
 
     def click_checkbox(self, checkbox_name):

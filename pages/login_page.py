@@ -35,7 +35,8 @@ class PageLogin:
 
 
     def click_login_button(self, timeout: int = 3):
-        self.driver.find_element(By.XPATH, self.sign_in_button).click()
+        self.driver.find_element(
+            By.XPATH, self.sign_in_button).click()
         time.sleep(timeout)
 
 

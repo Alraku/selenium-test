@@ -7,7 +7,7 @@ from data.test_data import testdata_searchbox, testdata_searchbox_filters
 from pages.search_results_page import PageSearchResults
 
 
-@pytest.mark.usefixtures("setup", "logger")
+@pytest.mark.usefixtures("setup")
 class TestSearchbox:
 
     @pytest.fixture()

@@ -6,7 +6,7 @@ from utils.helpers import CookieOperations
 from data.test_data import testdata_advert_form_fields
 
 
-@pytest.mark.usefixtures("setup", "logger")
+@pytest.mark.usefixtures("setup")
 class TestAddAdvert:
 
     @pytest.fixture()

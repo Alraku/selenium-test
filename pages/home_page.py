@@ -30,7 +30,9 @@ class PageHome:
 
         try:
             element = WebDriverWait(self.driver, 3).until(
-                EC.element_to_be_clickable((By.ID, self.id_location_suggestion)))
+                EC.element_to_be_clickable((
+                    By.ID, self.id_location_suggestion)))
+                    
             list_items = element.find_elements(By.TAG_NAME, "li")
             list_items[0].click()
         except TimeoutException as Exception:

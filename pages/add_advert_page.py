@@ -55,7 +55,8 @@ class PageAddAdvert:
         """Waits for title form field to appear and fills a value in."""
         try:
             element = WebDriverWait(self.driver, 3).until(
-                EC.element_to_be_clickable((By.XPATH, self.textfield_title))
+                EC.element_to_be_clickable((
+                    By.XPATH, self.textfield_title))
             )
             element.send_keys(self._advert.get('title'))
         except TimeoutException as Exception:
@@ -68,7 +69,8 @@ class PageAddAdvert:
         try:
             self.driver.find_element(By.XPATH, self.button_category).click()
             element = WebDriverWait(self.driver, 3).until(
-                EC.element_to_be_clickable((By.XPATH, self.button_suggested_category))
+                EC.element_to_be_clickable((
+                    By.XPATH, self.button_suggested_category))
             )
             element.click()
         except TimeoutException as Exception:
@@ -80,7 +82,8 @@ class PageAddAdvert:
         """Safari unsupported. Uploads photos from test data gallery."""
         for i in range(1, 4):
             self.driver.find_element(
-                By.ID, "photo-attachment-files").send_keys(globals.ROOT_DIR + f"/data/gallery/{i}.jpg"
+                By.ID, "photo-attachment-files").send_keys(
+                    globals.ROOT_DIR + f"/data/gallery/{i}.jpg"
             )
 
 
@@ -88,7 +91,8 @@ class PageAddAdvert:
         """Searches for description form field and fills a value in."""
         self.driver.execute_script("window.scrollTo(0, 850)")
         try:
-            element = self.driver.find_element(By.XPATH, self.textfield_description)
+            element = self.driver.find_element(
+                By.XPATH, self.textfield_description)
             element.send_keys(self._advert.get('description'))
         except NoSuchElementException as Exception:
             print("Element not found in desired time")
