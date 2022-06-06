@@ -1,6 +1,7 @@
 import os
 import json
-from pprint import pprint
+
+from datetime import datetime
 
 
 cookie_path = "/../utils/cookies/cookies.pkl"
@@ -21,3 +22,7 @@ class CookieOperations:
         for cookie in cookies:
             cookie.pop('domain', None)
             driver.add_cookie(cookie)
+
+
+def get_time() -> str:
+    return datetime.now().strftime("%Y-%m-%d__%H:%M:%S")
