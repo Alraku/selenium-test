@@ -18,19 +18,20 @@ class LogfilePrinter():
     
     def __init__(self, test_name):
         self.log_file_name = 'LOG_TC#001.txt'
-        self.log_dir = ROOT_DIR + '/logs/' + test_name
+        date_dir = get_time().replace(':', '-')
+        self.log_dir = os.path.join(ROOT_DIR, 'logs/', test_name, date_dir)
         self.log = None
 
 
     def create_directory(self):
         date_dir = get_time().replace(':', '-')
-        os.makedirs(self.log_dir + '/' + date_dir)
+        os.makedirs(os.path.join(self.log_dir))
 
 
     def open(self):
         if not os.path.exists(self.log_dir):
             self.create_directory()
-        self.log = open(self.log_dir + '/' + self.log_file_name, "w+")
+        self.log = open(os.path.join(self.log_dir, self.log_file_name), "w+")
 
 
     def print_log(self, message, level, time_stamp):
@@ -48,10 +49,14 @@ class Logger():
         return cls._instance
 
     
-    def __init__(self):
+    def __init__(self, test_name):
         self.start_time = time.time()
         #TODO self.console_printer = ConsolePrinter()
-        self.logfile_printer = LogfilePrinter('test_add_advert_basic')
+        self.logfile_printer = LogfilePrinter(test_name)
+
+
+    def setup_logger(self):
+        self.logfile_printer.open()
 
 
     def print_log(self, message, level):
@@ -59,18 +64,23 @@ class Logger():
         self.logfile_printer.print_log(message, level, get_time())
 
 
-    def setup_logger(self):
-        self.logfile_printer.open()
+    def warning(self, message):
+        self.print_log(message, Level.WARNING)
+
+
+    def info(self, message):
+        self.print_log(message, Level.INFO)
 
 
 if "logger" not in globals():
-    logger = Logger()
+    logger = Logger('test_login_valid_user')
     logger.setup_logger()
 
 
-class Level(Enum):
+class Level(str, Enum):
     
     STEP = "STEP"
+    INFO = "INFO"
     PASS = "PASS"
     FAIL = "FAIL"
     ERROR = "ERROR"

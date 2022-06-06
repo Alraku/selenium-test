@@ -2,16 +2,18 @@
 import pytest
 import utils.globals as globals
 
+
+from utils.logger import logger
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
-from webdriver_manager.microsoft import EdgeChromiumDriverManager
 from webdriver_manager.chrome import ChromeDriverManager
+from webdriver_manager.microsoft import EdgeChromiumDriverManager
 from selenium.webdriver.safari.options import Options as SafariOptions
 
 
 #@pytest.fixture(params=["edge", "safari"], scope='class')
 @pytest.fixture(scope='class')
-def setup(request, browser, system, url):
+def setup(request, browser, url):
     if browser == "edge":
         driver = webdriver.Edge(service = Service(EdgeChromiumDriverManager().install()))
     elif browser == "chrome":
@@ -22,8 +24,11 @@ def setup(request, browser, system, url):
 
     driver.maximize_window()
     request.cls.driver = driver
+    logger.info("Webdriver initialization finished.")
     
     yield driver
+
+    logger.info("Closing Webdriver instance.")
     driver.quit()
 
 

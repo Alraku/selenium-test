@@ -1,9 +1,10 @@
 import time
 
+from utils.logger import logger
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import NoSuchElementException, TimeoutException
+from selenium.common.exceptions import TimeoutException
 
 class PageLogin:
 
@@ -21,6 +22,7 @@ class PageLogin:
 
     
     def enter_credentials(self, username: str, password: str):
+        logger.info("Entering credentials in login form.")
         try:
             element = WebDriverWait(self.driver, 5).until(
                 EC.presence_of_element_located((
@@ -35,12 +37,14 @@ class PageLogin:
 
 
     def click_login_button(self, timeout: int = 3):
+        logger.info("Clicking login button.")
         self.driver.find_element(
             By.XPATH, self.sign_in_button).click()
         time.sleep(timeout)
 
 
     def accept_privacy_dialog(self):
+        logger.info("Accepting privacy dialog.")
         try:
             element = WebDriverWait(self.driver, 3).until(
                 EC.presence_of_element_located((

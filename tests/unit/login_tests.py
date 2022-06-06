@@ -1,8 +1,7 @@
-import time
 import pytest
 import utils.globals as globals
 
-from selenium.webdriver.common.by import By
+from utils.logger import logger
 from pages.login_page import PageLogin
 from utils.helpers import CookieOperations
 
@@ -12,12 +11,14 @@ class TestLogin:
 
     @pytest.fixture()
     def class_setup(self):
+        logger.info("Test Class Fixture initialization.")
         self.page_login = PageLogin(self.driver)
         self.driver.get(globals.BASE_URL + '/konto')
 
 
     @pytest.mark.order(1)
     def test_login_valid_user(self, class_setup):
+        logger.info("TEST STAGE - TEST_LOGIN_VALID_USER")
         self.page_login.accept_privacy_dialog()
         self.page_login.enter_credentials(globals.TEST_EMAIL, globals.TEST_PASSWORD)
         self.page_login.click_login_button(timeout = 5)
