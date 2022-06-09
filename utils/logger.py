@@ -27,7 +27,7 @@ class Logger():
 
     def print_log(self, message, level):
         #TODO self.console_printer.print_log(message, level, get_time())
-        self.logfile_printer.print_log(message, level, get_time())
+        self.logfile_printer.print_log(message, level, get_time().replace('__', ' '))
 
 
     def info(self, message):
