@@ -3,7 +3,7 @@ gitignore
 .vscode
 .pytest_cache
 
-utils/globals.py
+# utils/globals.py
 utils/cookies/cookies.pkl
 utils/.DS_Store
 data/gallery/.DS_Store
