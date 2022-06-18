@@ -34,7 +34,7 @@ def setup(request, browser, url):
 
 #this will get the value of CLI/Hooks
 def pytest_addoption(parser):
-    parser.addoption("--browser", default="edge")
+    parser.addoption("--browser", default="chrome")
     parser.addoption("--url")
 
 
