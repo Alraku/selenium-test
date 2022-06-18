@@ -19,9 +19,10 @@ RUN add-apt-repository \
        $(lsb_release -cs) \
        stable"
 
-RUN apt-get update && apt-get install -y docker-ce-cli
+RUN apt-get update && apt-get install -y docker.io
 
-# Alternatively for Ubuntu distr: 
-# RUN apt-get install -y docker.io
+# Python pip and virtual environment install
+
+RUN apt-get -y install python3-pip python3-venv
 
 USER Jenkins
