@@ -25,4 +25,8 @@ RUN apt-get update && apt-get install -y docker.io
 
 RUN apt-get -y install python3-pip python3-venv
 
+# For MS Edge webdriver
+
+RUN apt-get -y install libglib2.0-0
+
 USER Jenkins
