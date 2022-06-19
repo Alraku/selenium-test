@@ -25,8 +25,8 @@ RUN apt-get update && apt-get install -y docker.io
 
 RUN apt-get -y install python3-pip python3-venv
 
-# For MS Edge webdriver
+# For chromium based browsers
 
-RUN apt-get -y install libglib2.0-0
+RUN apt-get -y install libglib2.0-0 libnss3-dev libgdk-pixbuf2.0-dev libgtk-3-dev libxss-dev
 
 USER Jenkins
