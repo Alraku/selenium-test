@@ -11,14 +11,13 @@ class TestLogin:
 
     @pytest.fixture()
     def class_setup(self):
-        logger.info("Test Class Fixture initialization.")
         self.page_login = PageLogin(self.driver)
         self.driver.get(globals.BASE_URL + '/konto')
 
 
     @pytest.mark.order(1)
     def test_login_valid_user(self, class_setup):
-        logger.info("TEST STAGE - TEST_LOGIN_VALID_USER")
+        logger.step("Test execution started.")
         self.page_login.accept_privacy_dialog()
         self.page_login.enter_credentials(globals.TEST_EMAIL, globals.TEST_PASSWORD)
         self.page_login.click_login_button(timeout = 5)

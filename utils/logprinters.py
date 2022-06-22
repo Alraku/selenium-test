@@ -6,12 +6,14 @@ from utils.globals import ROOT_DIR
 
 class ConsolePrinter():
 
+    reset = '\x1b[0m'
+
     def __init__(self, test_name):
         self.test_name = test_name
 
     
     def print_log(self, message, level, time_stamp, color):
-        text_line = f'{time_stamp} - {color}{level} - {message}\x1b[0m'
+        text_line = f'{time_stamp} - {color}{level} - {message}{self.reset}'
         print(text_line)
 
 

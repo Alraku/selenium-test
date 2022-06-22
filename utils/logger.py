@@ -32,7 +32,11 @@ class Logger():
 
 
     def info(self, message):
-        self.print_log(message, Level.INFO, Color.BLUE)
+        self.print_log(message, Level.INFO)
+
+
+    def step(self, message):
+        self.print_log(message, Level.STEP, Color.BLUE)
 
 
     def error(self, message):
