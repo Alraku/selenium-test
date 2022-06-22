@@ -15,6 +15,7 @@ from selenium.webdriver.safari.options import Options as SafariOptions
 
 @pytest.fixture(scope='class')
 def setup(request, browser, mode):
+    logger.info("Webdriver initialization started.")
     if browser == "edge":
         options = EdgeOptions()
         # driver = webdriver.Edge(service = Service(EdgeChromiumDriverManager().install()))

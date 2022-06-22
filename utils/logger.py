@@ -17,7 +17,7 @@ class Logger():
     
     def __init__(self, test_name):
         self.start_time = time.time()
-        #TODO self.console_printer = ConsolePrinter()
+        self.console_printer = ConsolePrinter(test_name)
         self.logfile_printer = LogfilePrinter(test_name)
 
 
@@ -25,29 +25,30 @@ class Logger():
         self.logfile_printer.open()
 
 
-    def print_log(self, message, level):
-        #TODO self.console_printer.print_log(message, level, get_time())
-        self.logfile_printer.print_log(message, level, get_time().replace('__', ' '))
+    def print_log(self, message, level, color = ''):
+        time_stamp = get_time().replace('__', ' ')
+        self.console_printer.print_log(message, level, time_stamp, color)
+        self.logfile_printer.print_log(message, level, time_stamp)
 
 
     def info(self, message):
-        self.print_log(message, Level.INFO)
+        self.print_log(message, Level.INFO, Color.BLUE)
 
 
     def error(self, message):
-        self.print_log(message, Level.ERROR)
+        self.print_log(message, Level.ERROR, Color.RED)
 
 
     def passed(self, message):
-        self.print_log(message, Level.PASSED)
+        self.print_log(message, Level.PASSED, Color.GREEN)
 
 
     def failed(self, message):
-        self.print_log(message, Level.FAILED)
+        self.print_log(message, Level.FAILED, Color.RED)
 
 
     def warning(self, message):
-        self.print_log(message, Level.WARNING)
+        self.print_log(message, Level.WARNING, Color.ORANGE)
 
 
 if "logger" not in globals():
@@ -63,3 +64,12 @@ class Level(str, Enum):
     PASSED = "PASS"
     FAILED = "FAIL"
     WARNING = "WARNING"
+
+
+class Color():
+
+    GREEN = "\x1b[32;20m"
+    RED = "\x1b[31;20m"
+    BLUE = "\033[34m"
+    ORANGE = '\033[33m'
+    RESET = "\x1b[0m"

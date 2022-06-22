@@ -5,7 +5,14 @@ from utils.globals import ROOT_DIR
 
 
 class ConsolePrinter():
-    pass
+
+    def __init__(self, test_name):
+        self.test_name = test_name
+
+    
+    def print_log(self, message, level, time_stamp, color):
+        text_line = f'{time_stamp} - {color}{level} - {message}\x1b[0m'
+        print(text_line)
 
 
 class LogfilePrinter():
