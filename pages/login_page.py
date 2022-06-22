@@ -38,8 +38,10 @@ class PageLogin:
 
     def click_login_button(self, timeout: int = 3):
         logger.info("Clicking login button.")
-        self.driver.find_element(
-            By.XPATH, self.sign_in_button).click()
+        element = WebDriverWait(self.driver, 3).until(
+                EC.presence_of_element_located((
+                    By.XPATH, self.sign_in_button)))
+        element.click()
         time.sleep(timeout)
 
 
