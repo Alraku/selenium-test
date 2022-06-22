@@ -1,22 +1,33 @@
-## Table of contents
+# Test-Automation Project in Python
+
+# Table of contents
 * [General Info](#general-info)
-* [Technologies](#technologies)
-* [Setup](#setup)
+* [Technologies & Tools](#technologies-&-tools)
+* [Environment Setup](#environment-setup)
+* [Running Tests](#running-tests)
 * [Additional Files](#additional-files)
 
-## General info
-This project was made for learning reasons in order to gain knowledge and experience in Test Automation.
-	
-## Technologies
-Project is created mainly with:
-* Python: 3.9.10
-* Selenium for Python: 4.1.3+
-* PyTest: 7.1.1+
+# General info
+This project was created for learning reasons and as my first major step in Test Automation area. After almost 2 years of mixed commercial experience of manual and automated test environments I decided to gain knowledge on how to write automated test scripts in Python using Selenium library.
 
-versions of the packages might be updated within time
+I chose www.olx.pl - polish website for posting advertisments due to having a lot of potential ways of automating processes and different scenarios that may occurr.  
 	
-## Setup
-To run this project, it is recommended to create virtual environment and then install all dependencies (please refer to requirements.txt file within project file tree):
+# Technologies & Tools
+
+* Python: v3.9.10
+* Selenium for Python: v4.1.3+
+* PyTest: v7.1.1+
+* Jenkins v2.355
+* Docker v20.10.14
+
+# Environment Setup
+
+### 1. Setting global parameters
+To run this project, you must create free account on olx.pl, ant then fill in credentials in utils/globals.py file. ```SEL_GRID_URL``` is an IP address of Selenium Grid that tests will be connecting to.
+
+> * ```SEL_GRID_URL = '<ip_or_localhost>:4444/wd/hub'```
+> * ```TEST_EMAIL = 'email@test.com'```
+> * ```TEST_PASSWORD = 'password'```
 
 ```
 $ python -m venv .venv 
@@ -35,6 +46,11 @@ Then verify that path by executing:
 ```
 $ echo $PYTHONPATH
 ```
+
+## Running Tests
+
+local remote
+edge safari chrome
 
 ## Additional Files
 
