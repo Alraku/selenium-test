@@ -1,18 +1,18 @@
-# Test-Automation Project in Python
+## Test-Automation Project in Python
 
-# Table of contents
+## Table of contents
 * [General Info](#general-info)
 * [Technologies & Tools](#technologies-&-tools)
 * [Environment Setup](#environment-setup)
 * [Running Tests](#running-tests)
 * [Additional Files](#additional-files)
 
-# General info
+## General info
 This project was created for learning reasons and as my first major step in Test Automation area. After almost 2 years of mixed commercial experience of manual and automated test environments I decided to gain knowledge on how to write automated test scripts in Python using Selenium library.
 
 I chose www.olx.pl - polish website for posting advertisments due to having a lot of potential ways of automating processes and different scenarios that may occurr.  
 	
-# Technologies & Tools
+## Technologies & Tools
 
 * Python: v3.9.10
 * Selenium for Python: v4.1.3+
@@ -20,7 +20,7 @@ I chose www.olx.pl - polish website for posting advertisments due to having a lo
 * Jenkins v2.355
 * Docker v20.10.14
 
-# Environment Setup
+## Environment Setup
 
 ### 1. Setting global parameters
 To run this project, you must create free account on olx.pl, ant then fill in credentials in utils/globals.py file. ```SEL_GRID_URL``` is an IP address of Selenium Grid that tests will be connecting to.
