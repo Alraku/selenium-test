@@ -10,6 +10,18 @@ from selenium.webdriver.edge.options import Options as EdgeOptions
 from selenium.webdriver.safari.options import Options as SafariOptions
 
 
+@pytest.fixture(scope='function', autouse=True)
+def test_log(request):
+    logger.info(f"Starting Test Case: {request.node.name.upper()}")
+    logger.setup_logger(request.node.name.upper())
+
+    def fin():
+        logger.info(f"Completed Test Case: {request.node.name.upper()}")
+        del globals()[logger]
+
+    request.addfinalizer(fin)
+
+
 @pytest.fixture(scope='class')
 def setup(request, browser):
     logger.step("Prepare instance of Webdriver")
@@ -41,19 +53,9 @@ def setup(request, browser):
     driver.quit()
 
 
-@pytest.fixture(scope='function', autouse=True)
-def test_log(request):
-    logger.info(f"Starting Test Case: {request.node.name.upper()}")
-
-    def fin():
-        logger.info(f"Completed Test Case: {request.node.name.upper()}")
-
-    request.addfinalizer(fin)
-
-
 # This will get the value of CLI/Hooks
 def pytest_addoption(parser):
-    parser.addoption("--browser", default="edge") 
+    parser.addoption("--browser", default="safari") 
 
 
 # This will return the browser value to setup method
