@@ -21,6 +21,10 @@ class Logger():
         self.logfile_printer = LogfilePrinter(test_name)
 
 
+    def __del__(self):
+        print("Logger object closed.")
+
+
     def setup_logger(self):
         self.logfile_printer.open()
 
