@@ -1,5 +1,8 @@
 from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.edge.options import Options
+
+import sys
+from utils.logger import logger
 
 options=Options()
 
@@ -9,7 +12,9 @@ driver = webdriver.Remote(
 driver.get("https://github.com")
 print(driver.title)
 assert "GitHub" in driver.title
+logger.error
 driver.quit()
+
 
 
 

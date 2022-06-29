@@ -10,7 +10,7 @@ class CookieOperations:
 
 
     @staticmethod
-    def save_cookie(driver):
+    def save_cookie(driver) -> None:
         if not os.path.exists(cookie_path):
             os.makedirs(cookie_path)
         with open(cookie_path + '/cookies.pkl', 'w') as filehandler:
@@ -18,7 +18,7 @@ class CookieOperations:
 
 
     @staticmethod
-    def load_cookie(driver):
+    def load_cookie(driver) -> None:
         with open(cookie_path + '/cookies.pkl', 'r') as cookiefile:
             cookies = json.load(cookiefile)
         for cookie in cookies:
