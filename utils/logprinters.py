@@ -20,7 +20,7 @@ class ConsolePrinter():
 class LogfilePrinter():
     
     def __init__(self, test_name):
-        self.log_file_name = 'LOG_TC#001.txt'
+        self.log_file_name = 'LOG_TC#001.log'
         date_dir = get_time().replace(':', '-')
         self.log_dir = os.path.join(ROOT_DIR, 'logs/', test_name, date_dir)
         self.log = None

@@ -1,4 +1,5 @@
 import time
+import sys
 
 from enum import Enum
 from utils.helpers import get_time
@@ -8,6 +9,8 @@ from utils.logprinters import LogfilePrinter, ConsolePrinter
 class Logger():
 
     _instance = None
+    start_time = None
+    test_session_name = None
 
     def __new__(cls, *args, **kwargs):
         if not cls._instance:
@@ -15,18 +18,16 @@ class Logger():
         return cls._instance
 
     
-    def __init__(self, test_name):
+    def __init__(self):
         self.start_time = time.time()
-        self.console_printer = ConsolePrinter(test_name)
-        self.logfile_printer = LogfilePrinter(test_name)
+        self.test_session_name = get_time()
+        self.console_printer = ConsolePrinter(f"test_session_{self.test_session_name}")
+        self.logfile_printer = LogfilePrinter(f"test_session_{self.test_session_name}")
+        self.logfile_printer.open()
 
 
     def __del__(self):
-        print("Logger object closed.")
-
-
-    def setup_logger(self):
-        self.logfile_printer.open()
+        del globals()['logger']
 
 
     def print_log(self, message, level, color = ''):
@@ -60,8 +61,7 @@ class Logger():
 
 
 if "logger" not in globals():
-    logger = Logger('test_login_valid_user')
-    logger.setup_logger()
+    logger = Logger()
 
 
 class Level(str, Enum):
