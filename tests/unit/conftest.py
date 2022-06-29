@@ -1,30 +1,39 @@
+import os
 import pytest
+import logging
+import datetime
 import utils.globals as globals
 
 
-from utils.logger import logger
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options as ChromeOptions
 from selenium.webdriver.edge.options import Options as EdgeOptions
 from selenium.webdriver.safari.options import Options as SafariOptions
 
+logger = logging.getLogger(__name__)
+start_time = datetime.datetime.strftime(datetime.datetime.now(), '%Y-%m-%d__%H-%M-%S')
+
+
+@pytest.hookimpl
+def pytest_runtest_setup(item):
+    logging_plugin = item.config.pluginmanager.get_plugin("logging-plugin")
+    logging_plugin.set_log_path(os.path.join('logs', f'test_session_{start_time}', f'{item.name}.log'))
+
 
 @pytest.fixture(scope='function', autouse=True)
 def test_log(request):
-    logger.info(f"Starting Test Case: {request.node.name.upper()}")
-    logger.setup_logger(request.node.name.upper())
+    logger.info(f"Execution of Test Case: {request.node.name.upper()} has started.")
 
     def fin():
-        logger.info(f"Completed Test Case: {request.node.name.upper()}")
-        del globals()[logger]
+        logger.info(f"Execution of Test Case: {request.node.name.upper()} has ended.")
 
     request.addfinalizer(fin)
 
 
 @pytest.fixture(scope='class')
 def setup(request, browser):
-    logger.step("Prepare instance of Webdriver")
+    logger.info("Preparing instance of Webdriver")
 
     if browser == "edge":
         options = EdgeOptions()
@@ -49,7 +58,7 @@ def setup(request, browser):
     
     yield driver
 
-    logger.step("Closing instance of Webdriver.")
+    logger.info("Closing instance of Webdriver.")
     driver.quit()
 
 
