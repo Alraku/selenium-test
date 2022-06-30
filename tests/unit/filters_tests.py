@@ -1,7 +1,10 @@
 import pytest
+import logging
 
 from pages.home_page import PageHome
 from utils.globals import globals
+
+logger = logging.getLogger(__name__)
 
 
 @pytest.mark.usefixtures("setup")
