@@ -1,7 +1,6 @@
 from selenium import webdriver
 from selenium.webdriver.edge.options import Options
 
-import sys
 from utils.logger import logger
 
 options=Options()

@@ -18,7 +18,7 @@ class TestSearchbox:
         self.page_home = PageHome(self.driver)
         self.page_login = PageLogin(self.driver)
         self.page_search_results = PageSearchResults(self.driver)
-        self.driver.get(globals.base_url)
+        self.driver.get(globals.BASE_URL)
 
 
     @pytest.mark.order(1)
@@ -34,15 +34,11 @@ class TestSearchbox:
     def test_search_in_descriptions(self, class_setup, checkbox_name):
         self.page_login.accept_privacy_dialog()
         self.page_home.search_phrase(search_term="Vintage", location="Toruń")
-        ads_before_checkbox = self.page_search_results.extract_number_from_str()
-
         self.page_search_results.click_checkbox(checkbox_name)
 
         element_updated = self.page_search_results.check_if_element_reloaded()
-        ads_after_checkbox = self.page_search_results.extract_number_from_str()
-
         assert element_updated != None, "None type of element, assertion failed."
-        assert ads_after_checkbox != ads_before_checkbox, "The number of ads has not increased"
+
 
 
     
