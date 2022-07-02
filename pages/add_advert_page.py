@@ -1,14 +1,12 @@
 import time
+import logging
 import utils.globals as globals
 
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import TimeoutException, NoSuchElementException
-
-import logging
-from framework.wrappers import find_element, page_scroll
 from pages._locators import AddAdvertPageLocators as Locator
+from framework.wrappers import find_element, page_scroll
+
+from selenium.webdriver.common.by import By
+from selenium.common.exceptions import NoSuchElementException
 
 
 class PageAddAdvert:
