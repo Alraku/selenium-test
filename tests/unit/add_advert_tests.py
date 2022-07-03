@@ -2,7 +2,7 @@ import pytest
 import logging
 import utils.globals as globals
 
-from pages.add_advert_page import PageAddAdvert
+from pages.add_advert import PageAddAdvert
 from utils.helpers import CookieOperations
 from data.test_data import testdata_advert_form_fields
 

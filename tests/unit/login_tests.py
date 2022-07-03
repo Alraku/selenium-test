@@ -2,7 +2,7 @@ import pytest
 import logging
 import utils.globals as globals
 
-from pages.login_page import PageLogin
+from pages.login import PageLogin
 from utils.helpers import CookieOperations
 
 logger = logging.getLogger(__name__)

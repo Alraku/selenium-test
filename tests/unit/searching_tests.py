@@ -2,16 +2,16 @@ import pytest
 import logging
 import utils.globals as globals
 
-from pages.home_page import PageHome
-from pages.login_page import PageLogin
+from pages.home import PageHome
+from pages.login import PageLogin
 from data.test_data import testdata_searchbox, testdata_searchbox_filters
-from pages.search_results_page import PageSearchResults
+from pages.search_results import PageSearchResults
 
 logger = logging.getLogger(__name__)
 
 
 @pytest.mark.usefixtures("setup")
-class TestSearchbox:
+class TestSearchbox():
 
     @pytest.fixture()
     def class_setup(self):
