@@ -2,6 +2,7 @@ from time import sleep
 import logging
 
 import utils.globals as globals
+from pages._base import BasePage
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -9,7 +10,7 @@ from selenium.common.exceptions import TimeoutException
 
 LOGGER = logging.getLogger(__name__)
 
-class PageHome:
+class PageHome(BasePage):
 
     id_search_field = 'headerSearch'
     id_location_field = 'cityField'

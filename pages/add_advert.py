@@ -1,7 +1,7 @@
 import time
-import logging
 import utils.globals as globals
 
+from pages._base import BasePage
 from pages._locators import AddAdvertPageLocators as Locator
 from framework.wrappers import find_element, page_scroll
 
@@ -9,10 +9,9 @@ from selenium.webdriver.common.by import By
 from selenium.common.exceptions import NoSuchElementException
 
 
-class PageAddAdvert:
+class PageAddAdvert(BasePage):
 
     def __init__(self, driver):
-        self.driver = driver
         self._advert = None
 
 

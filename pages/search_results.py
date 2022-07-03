@@ -1,16 +1,13 @@
 import time
 
 from framework.wrappers import find_element
+from pages._base import BasePage
 from pages._locators import SearchResultsPageLocators as Locator
 
 from selenium.webdriver.common.by import By
 
 
-class PageSearchResults:
-
-    def __init__(self, driver):
-        self.driver = driver
-
+class PageSearchResults(BasePage):
 
     def check_if_element_reloaded(self):
         results_skeleton_wrapper = find_element(
