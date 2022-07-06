@@ -11,7 +11,9 @@ from selenium.common.exceptions import NoSuchElementException
 
 class PageAddAdvert(BasePage):
 
+
     def __init__(self, driver):
+        super().__init__(driver, '/d/nowe-ogloszenie/')
         self._advert = None
 
 

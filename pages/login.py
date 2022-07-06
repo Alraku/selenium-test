@@ -7,6 +7,10 @@ from pages._locators import LoginPageLocators as Locator
 
 class PageLogin(BasePage):
 
+    def __init__(self, driver):
+        super().__init__(driver, '/konto')
+
+
     def enter_credentials(self, username: str, password: str):
         self.logger.info("Entering credentials in login form.")
         textfield_username = (find_element(

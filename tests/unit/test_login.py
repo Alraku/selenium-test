@@ -14,7 +14,7 @@ class TestLogin:
     @pytest.fixture()
     def class_setup(self):
         self.page_login = PageLogin(self.driver)
-        self.driver.get(globals.BASE_URL + '/konto')
+        self.page_login.open()
 
 
     @pytest.mark.order(1)
