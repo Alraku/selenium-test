@@ -1,5 +1,4 @@
 import time
-import sys
 
 from enum import Enum
 from utils.helpers import get_time
