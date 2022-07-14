@@ -11,7 +11,6 @@ driver = webdriver.Remote(
 driver.get("https://github.com")
 print(driver.title)
 assert "GitHub" in driver.title
-logger.error
 driver.quit()
 
 
