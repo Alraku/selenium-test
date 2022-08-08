@@ -1,7 +1,7 @@
 import pytest
 import logging
 
-from pages.home import PageHome
+from pages.page_home import PageHome
 from utils.globals import globals
 
 logger = logging.getLogger(__name__)
