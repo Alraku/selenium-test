@@ -1,7 +1,10 @@
 from selenium.webdriver.common.by import By
 
-class LoginPageLocators(object):
-    """A class for login page locators. All login page locators should come here"""
+class Locators(object):
+    pass
+
+class PageLoginLocators(Locators):
+    """A class for login page locators."""
 
     INPUT_USERNAME = (By.XPATH, '//*[@id="userEmail"]')
     INPUT_PASSWORD = (By.XPATH, '//*[@id="userPass"]')
@@ -9,15 +12,15 @@ class LoginPageLocators(object):
     BUTTON_PRIVACY_ACCEPT = (By.XPATH, '//*[@id="onetrust-accept-btn-handler"]')
     LABEL_INVALID_CREDS = (By.XPATH, '//label[@for="userPass" and @class="error"]')
 
-class SearchResultsPageLocators(object):
-    """A class for search results locators. All search results locators should come here"""
+class PageResultsLocators(Locators):
+    """A class for results page locators."""
 
     NUMBER_OF_ADS_FOUND = (By.CSS_SELECTOR, 'div[data-testid="total-count"]')
     RESULTS_SKELETON_WRAPPER = (By.CSS_SELECTOR, 'ul[data-testid="qa-skeleton-wrapper"]')
     CHECKBOX_NAME = ()
 
-class AddAdvertPageLocators(object):
-    """A class for add advert locators. All add advert locators should come here"""
+class PageAddAdvertLocators(Locators):
+    """A class for add_advert page locators."""
 
     INPUT_TITLE = (By.XPATH, '//textarea[@data-cy="posting-title"]')
     BUTTON_CATEGORY = (By.XPATH, '//div[@data-cy="posting-select-category"]')
@@ -37,3 +40,12 @@ class AddAdvertPageLocators(object):
     dialog2 = (By.XPATH, '//*[@id="root"]/div[1]/div[3]/div/div/footer/button/span/span')
     advert_title = (By.XPATH, '//*[@id="root"]/div[1]/div[2]/div/div[3]/div/div[2]/div/div[1]/div[2]/div[1]/h5/a')
     suggested_location = (By.XPATH, '//*[@id="posting-form"]/main/div[1]/div[7]/div[2]/div/div/div/div/div/div/div[2]/li')
+
+class PageHomeLocators(Locators):
+    """A class for home page locators."""
+
+    SEARCH_BOX = (By.ID, 'headerSearch')
+    INPUT_LOCATION = (By.ID, 'cityField')
+    INPUT_LOCATION_SUGGESTION = (By.ID, 'autosuggest-geo-ul')
+    BUTTON_SUBMIT_SEARCH = (By.ID, 'submit-searchmain')
+    BUTTON_ADD_ADVERT = (By.ID, 'postNewAdLink')
