@@ -1,7 +1,9 @@
 from selenium.webdriver.common.by import By
 
+
 class Locators(object):
     pass
+
 
 class PageLoginLocators(Locators):
     """A class for login page locators."""
@@ -12,12 +14,16 @@ class PageLoginLocators(Locators):
     BUTTON_PRIVACY_ACCEPT = (By.XPATH, '//*[@id="onetrust-accept-btn-handler"]')
     LABEL_INVALID_CREDS = (By.XPATH, '//label[@for="userPass" and @class="error"]')
 
+
 class PageResultsLocators(Locators):
     """A class for results page locators."""
 
     NUMBER_OF_ADS_FOUND = (By.CSS_SELECTOR, 'div[data-testid="total-count"]')
     RESULTS_SKELETON_WRAPPER = (By.CSS_SELECTOR, 'ul[data-testid="qa-skeleton-wrapper"]')
-    CHECKBOX_NAME = ()
+    CHECKBOX_DESCRIPTION = (By.XPATH, '//*[@id="paramsListOpt"]/div/div[1]/label[1]')
+    CHECKBOX_PHOTOS = (By.XPATH, '//*[@id="paramsListOpt"]/div/div[2]/label[1]')
+    CHECKBOX_DELIVERY = (By.XPATH, '//*[@id="paramsListOpt"]/div/div[3]/label[1]')
+
 
 class PageAddAdvertLocators(Locators):
     """A class for add_advert page locators."""
@@ -41,11 +47,12 @@ class PageAddAdvertLocators(Locators):
     advert_title = (By.XPATH, '//*[@id="root"]/div[1]/div[2]/div/div[3]/div/div[2]/div/div[1]/div[2]/div[1]/h5/a')
     suggested_location = (By.XPATH, '//*[@id="posting-form"]/main/div[1]/div[7]/div[2]/div/div/div/div/div/div/div[2]/li')
 
+
 class PageHomeLocators(Locators):
     """A class for home page locators."""
 
     SEARCH_BOX = (By.ID, 'headerSearch')
     INPUT_LOCATION = (By.ID, 'cityField')
     INPUT_LOCATION_SUGGESTION = (By.ID, 'autosuggest-geo-ul')
-    BUTTON_SUBMIT_SEARCH = (By.ID, 'submit-searchmain')
-    BUTTON_ADD_ADVERT = (By.ID, 'postNewAdLink')
+    BUTTON_SUBMIT_SEARCH = (By.XPATH, '//*[@id="submit-searchmain"]')
+    BUTTON_ADD_ADVERT = (By.XPATH, '//*[@id="postNewAdLink"]')
