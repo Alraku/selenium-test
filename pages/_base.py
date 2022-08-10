@@ -17,10 +17,8 @@ class BasePage(object):
         self.logger = logging.getLogger(__name__)
         self.url_path = BASE_URL + url_path
 
-
     def open(self):
         self.driver.get(self.url_path)
-
 
     def find_element(self, locator: tuple[By, str], timeout: int = 3) -> WebElement:
         (locator_type, locator_value) = locator
@@ -34,12 +32,13 @@ class BasePage(object):
             self.logger.warning("Element not found in desired time.")
             raise Exception
 
-
     def page_scroll(self, height) -> None:
         self.logger.info(f"Scrolling page to Y: {height}")
         self.driver.execute_script(f"window.scrollTo(0, {height})")
 
-
     def wait(self, timeout) -> None:
         self.logger.info(f"Waiting: {timeout} seconds.")
         time.sleep(timeout)
+
+    def get_title(self) -> str:
+        return self.driver.title
