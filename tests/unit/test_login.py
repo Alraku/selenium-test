@@ -1,42 +1,34 @@
 import pytest
-import logging
 import utils.globals as globals
 
 from pages.page_login import PageLogin
-from utils.helpers import CookieOperations
-
-logger = logging.getLogger(__name__)
 
 
 @pytest.mark.usefixtures("setup")
-class TestLogin:
+class TestLogin(object):
 
-    @pytest.fixture()
+    @pytest.fixture(autouse=True)
     def class_setup(self):
         self.page_login = PageLogin(self.driver)
         self.page_login.open()
 
-
-    def test_login_valid_user(self, class_setup):
-        logger.info("Test execution started.")
+    def test_login(self):
         self.page_login.accept_privacy_dialog()
-        self.page_login.enter_credentials(globals.TEST_EMAIL, globals.TEST_PASSWORD)
-        self.page_login.click_login_button(timeout = 5)
-        CookieOperations.save_cookie(self.driver)
-        assert "/mojolx" in self.driver.current_url, logger.error("Assertion failed, address doesn't match.")
+        self.page_login.enter_credentials(
+            globals.TEST_EMAIL, globals.TEST_PASSWORD)
 
+        self.page_login.click_login_button()
+        assert self.page_login.is_logged_in()
 
-    def test_login_invalid_user(self, class_setup):
+    def test_login_invalid(self):
         self.page_login.accept_privacy_dialog()
-        self.page_login.enter_credentials('bademail@email.com', 'badpassword')
-        self.page_login.click_login_button(timeout = 5)
-        assert self.page_login.check_invalid_login_label() == "Nieprawidłowy login lub hasło", logger.error("Assertion failed, text of the element doesn't match.")
+        self.page_login.enter_credentials(
+            'bademail@email.com', 'badpassword')
 
+        self.page_login.click_login_button()
+        assert self.page_login.is_invalid_login()
 
-    def test_login_with_saved_cookie(self):
-        self.driver.get(globals.BASE_URL)
-        CookieOperations.load_cookie(self.driver)
-        self.driver.get(globals.BASE_URL + '/konto')
-        assert "/mojolx" in self.driver.current_url, logger.error("Assertion failed, address doesn't match.")
-
-        
+    def test_login_cookie(self):
+        self.page_login.load_cookie()
+        self.page_login.open()
+        assert self.page_login.is_logged_in()

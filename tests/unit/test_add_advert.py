@@ -1,25 +1,24 @@
 import pytest
-import logging
 import utils.globals as globals
 
 from pages.page_add_advert import PageAddAdvert
-from utils.helpers import CookieOperations
+from pages.page_login import PageLogin
+from pages.page_home import PageHome
 from data.test_data import testdata_advert_form_fields
 
 
-logger = logging.getLogger(__name__)
-
-
 @pytest.mark.usefixtures("setup")
-class TestAddAdvert:
+class TestAddAdvert(object):
 
     @pytest.fixture()
     def class_setup(self):
-        self.driver.get(globals.BASE_URL)
-        CookieOperations.load_cookie(self.driver)
+        self.page_login = PageLogin(self.driver)
+        self.page_home = PageHome(self.driver)
         self.page_add_advert = PageAddAdvert(self.driver)
-        self.driver.get(globals.BASE_URL + '/nowe-ogloszenie')
-
+        self.page_login.load_cookie()
+        self.driver.get(globals.BASE_URL)
+        self.page_home.click_add_advert()
+        # self.driver.get(globals.BASE_URL + '/nowe-ogloszenie')
 
     @pytest.mark.order(1)
     @pytest.mark.parametrize('advert', testdata_advert_form_fields)

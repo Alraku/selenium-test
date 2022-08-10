@@ -5,7 +5,6 @@ import logging
 from datetime import datetime
 from tests.unit._webdriver import WebDriver
 
-logger = logging.getLogger(__name__)
 start_time = datetime.strftime(datetime.now(), '%Y-%m-%d__%H-%M-%S')
 
 
@@ -16,13 +15,31 @@ def pytest_runtest_setup(item):
         os.path.join('logs', f'test_session_{start_time}', f'{item.name}.log'))
 
 
-@pytest.fixture(scope='function', autouse=True)
-def test_log(request):
+@pytest.hookimpl(tryfirst=True, hookwrapper=True)
+def pytest_runtest_makereport(item, call):
+    outcome = yield
+    rep = outcome.get_result()
+    setattr(item, "rep_" + rep.when, rep)
+
+
+@pytest.fixture(scope='session', autouse=True)
+def logger():
+    logger = logging.getLogger(__name__)
+    logger.setLevel(logging.DEBUG)
+    return logger
+
+
+@pytest.fixture(autouse=True)
+def logger_result(request, logger):
     test_case_name = request.node.name.upper()
     logger.info(f"Execution of Test Case: {test_case_name} has started.")
 
     def fin():
         logger.info(f"Execution of Test Case: {test_case_name} has ended.")
+        if request.node.rep_call.passed:
+            logger.info("RESULT: PASSED")
+        else:
+            logger.info("RESULT: FAILED")
 
     request.addfinalizer(fin)
 
@@ -37,7 +54,7 @@ def browser(request):
 
 
 @pytest.fixture(scope='class')
-def setup(request, browser):
+def setup(request, browser, logger):
     logger.info("Preparing instance of Webdriver")
     driver = WebDriver().get_webdriver(browser)
 

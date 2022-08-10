@@ -1,7 +1,7 @@
 import utils.globals as globals
 
 from pages._base import BasePage
-from pages._locators import AddAdvertPageLocators as Locator
+from pages._locators import PageAddAdvertLocators as Locator
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import NoSuchElementException
 
