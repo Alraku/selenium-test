@@ -1,6 +1,6 @@
 from pages._base import BasePage
 from pages._locators import PageLoginLocators as Locator
-from utils.helpers import CookieOperations
+from tests._webdriver import WebDriver
 
 
 class PageLogin(BasePage):
@@ -29,7 +29,7 @@ class PageLogin(BasePage):
     def is_logged_in(self) -> bool:
         self.logger.info("Checking if user is logged in.")
         if "/mojolx" in self.driver.current_url:
-            CookieOperations.save_cookie(self.driver)
+            WebDriver.save_cookie(self.driver)
             self.logger.info("User is logged in.")
             return True
         else:
@@ -50,5 +50,4 @@ class PageLogin(BasePage):
             return False
 
     def load_cookie(self) -> None:
-        CookieOperations.load_cookie(self.driver)
-        self.wait(3)
+        WebDriver.load_cookie(self.driver)
