@@ -16,6 +16,7 @@ def logger_result(request, logger):
 
     def fin():
         logger.info(f"Execution of Test Case: {test_case_name} has ended.")
+        logger.info(f"DURATION: {round(request.node.rep_call.duration, 2)} sec.")
         if request.node.rep_call.passed:
             logger.info("RESULT: PASSED")
         else:
