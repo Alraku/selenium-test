@@ -12,7 +12,7 @@ I chose www.olx.pl - polish website for posting advertisments due to having a lo
 	
 ## Technologies & Tools
 
-* Python: v3.9.10
+* Python: v3.10.5
 * Selenium for Python: v4.1.3+
 * PyTest: v7.1.1+
 * Jenkins v2.355
@@ -25,8 +25,8 @@ I have created special user account for testing purposes in order to not to use 
 If you want to run this project by your own, you must create free account on olx.pl, 
 and then fill in user credentials in utils/globals.py file. 
 
-This project uses Remote WebDriver instance along with Selenium grid to run tests. That means you
-must specify IP address or localhost to connect to Selenium Hub with its connected nodes.
+To run this project you may use both local WebDriver executable (default is safari) and remote WebDriver instance along with Selenium grid to run tests. 
+That means you must specify IP address or localhost to connect to Selenium Hub with its connected nodes.
 
 The whole config (global.py) file should look like this:
 > * ```SEL_GRID_URL = '<ip_or_localhost>:4444/wd/hub'```
@@ -53,11 +53,14 @@ $ echo $PYTHONPATH
 
 ## Running Tests
 
-To run specific tests use this command:
+To run specific module tests use this command:
 ```
-pytest login_tests.py::TestLogin::test_login_valid_user -rP
+pytest --browser=<browser_name> tests/unit/test_login::TestLogin
 ```
-
+But you can also target specific test name:
+```
+pytest --browser=<browser_name> tests/unit/test_login::TestLogin::test_login_cookie
+```
 ## Additional Info
 
 Some tests skip login procedure and use saved cookies files to execute processes as logged in user.
