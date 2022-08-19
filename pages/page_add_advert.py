@@ -10,41 +10,27 @@ class PageAddAdvert(BasePage):
 
     def __init__(self, driver):
         super().__init__(driver, '/d/nowe-ogloszenie/')
-        self._advert = None
+        self.advert = None
 
-    @property
-    def advert(self):
+    def fill_in(self, advert):
         """
-        Getter for advert property.
+        Groups functions that fill formfiled on page.
         """
-        return self._advert
-
-    @advert.setter
-    def advert(self, advert):
-        """
-        Setter for advert property.
-        """
-        self._advert = advert
-
-    def fill_in_fields(self):
-        """
-        Groups every small functions that fill formfiled on page.
-        """
-        self.fill_in_title()
-        self.fill_in_suggested_category()
-        self.fill_in_description()
+        self.advert = advert
+        self.fill_in_title(self.advert.get('title'))
+        self.select_category()
+        self.fill_in_description(self.advert.get('description'))
         self.fill_in_additional_info()
         self.fill_in_contact_info()
         self.disable_delivery()
 
-    def fill_in_title(self):
+    def fill_in_title(self, title):
         """
         Waits for title form field to appear and fills a value in.
         """
-        self.find_element(Locator.INPUT_TITLE).send_keys(
-            self._advert.get('title'))
+        self.find_element(Locator.INPUT_TITLE).send_keys(title)
 
-    def fill_in_suggested_category(self):
+    def select_category(self):
         """
         Opens category tray, waits for suggested category to appear
         and chooses it.
@@ -58,13 +44,12 @@ class PageAddAdvert(BasePage):
             self.find_element(Locator.INPUT_PHOTOS).send_keys(
                 globals.ROOT_DIR + f"/data/gallery/{i}.jpg")
 
-    def fill_in_description(self):
+    def fill_in_description(self, description):
         """
         Searches for description form field and fills a value in.
         """
         self.page_scroll(850)
-        self.find_element(Locator.INPUT_DESCRIPTION).send_keys(
-            self._advert.get('description'))
+        self.find_element(Locator.INPUT_DESCRIPTION).send_keys(description)
 
     def fill_in_additional_info(self):
         """
@@ -75,7 +60,7 @@ class PageAddAdvert(BasePage):
         self.find_element(Locator.BUTTON_ITEM_CONDITION).click()
 
         try:
-            option = self._advert.get('item_condition')
+            option = self.advert.get('item_condition')
             element = self.driver.find_element(
                 By.XPATH, f"//*[@id='posting-form']/main/div[1]/div[4]/div/div[2]/ul/li[2]/div/div/ul/li[{option}]"
             )
@@ -89,7 +74,7 @@ class PageAddAdvert(BasePage):
         Searches for contact location form field and fills a value in.
         """
         self.find_element(Locator.INPUT_LOCATION).clear().send_keys(
-            self._advert.get('location'))
+            self.advert.get('location'))
 
         self.find_element(Locator.suggested_location).click()
 
@@ -112,10 +97,10 @@ class PageAddAdvert(BasePage):
         and if so fills form field.
         Otherwise selects for free or exchange options.
         """
-        price = self._advert.get('price')
+        price = self.advert.get('price')
         if price.isdigit():
             self.find_element(Locator.INPUT_PRICE).send_keys(
-                self._advert.get('price'))
+                self.advert.get('price'))
 
         elif price == "free":
             self.find_element(Locator.BUTTON_FREE).click()
@@ -128,7 +113,7 @@ class PageAddAdvert(BasePage):
         Checks if string stored in advert type key is private or business.
         Selects proper type of advert.
         """
-        type = self._advert.get('advert_type')
+        type = self.advert.get('advert_type')
         if type == "private":
             self.find_element(Locator.BUTTON_TYPE_PRIVATE).click()
 
