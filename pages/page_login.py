@@ -25,7 +25,7 @@ class PageLogin(BasePage):
             self.find_element(Locator.BUTTON_PRIVACY_ACCEPT).click()
         except:
             self.logger.warning("Privacy Dialog did not appear.")
-            
+
     def is_logged_in(self) -> bool:
         self.logger.info("Checking if user is logged in.")
         if "/mojolx" in self.driver.current_url:
@@ -36,7 +36,7 @@ class PageLogin(BasePage):
             self.logger.error("Login operation failed.")
             return False
 
-    def is_invalid_login(self) -> bool:
+    def is_login_invalid(self) -> bool:
         self.logger.info("Looking for invalid login credentials label.")
         expected = "Nieprawidłowy login lub hasło"
         actual = self.find_element(Locator.LABEL_INVALID_CREDS)
