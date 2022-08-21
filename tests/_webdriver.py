@@ -3,7 +3,7 @@ import logging
 import json
 import os
 
-from utils.globals import SEL_GRID_URL, SAFARI_DRIVER_PATH
+from utils.globals import SEL_GRID_URL, SAFARI_DRIVER_PATH, ROOT_DIR
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options as ChromeOptions
@@ -12,7 +12,7 @@ from selenium.webdriver.safari.options import Options as SafariOptions
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.action_chains import ActionChains
 
-cookie_path = os.path.dirname(__file__) + "/cookies"
+cookie_path = ROOT_DIR + "/data/cookies"
 logger = logging.getLogger(__name__)
 
 
@@ -55,7 +55,7 @@ class WebDriver(object):
         with open(cookie_path + '/cookies.pkl', 'r') as cookiefile:
             cookies = json.load(cookiefile)
         for cookie in cookies:
-            cookie.pop('domain', None)
+            # cookie.pop('domain', None)
             driver.add_cookie(cookie)
         time.sleep(3)
 
