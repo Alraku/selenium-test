@@ -5,7 +5,8 @@ testdata_searchbox = [
 
 testdata_advert_form_fields = [{
     "title": "Smartwach Samsung Galaxy 3 - Nowy, gwarancja",
-    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris gravida quam eget ligula erat curae.",
+    "description": ("Lorem ipsum dolor sit amet, consectetur adipiscing elit."
+                    "Mauris gravida quam eget ligula erat curae."),
     "price": "3000",  # Might be also "free", "exchange"
     "negotiable": False,
     "advert_type": "private",  # Might be also "business"
