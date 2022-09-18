@@ -139,7 +139,8 @@ output/
 test.py
 
 # utils/globals.py
-utils/cookies/cookies.pkl
+data/cookies/cookies.pkl
 utils/.DS_Store
 data/gallery/.DS_Store
 logs
+example.py
