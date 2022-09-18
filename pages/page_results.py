@@ -1,6 +1,5 @@
 from pages._base import BasePage
 from pages._locators import PageResultsLocators as Locator
-from selenium.webdriver.common.by import By
 
 
 class PageResults(BasePage):
