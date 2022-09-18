@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <title>Test Report</title>
+    <style>body {
+  font-family: Helvetica, Arial, sans-serif;
+  font-size: 12px;
+  /* do not increase min-width as some may use split screens */
+  min-width: 800px;
+  color: #999;
+}
+
+h1 {
+  font-size: 24px;
+  color: black;
+}
+
+h2 {
+  font-size: 16px;
+  color: black;
+}
+
+p {
+  color: black;
+}
+
+a {
+  color: #999;
+}
+
+table {
+  border-collapse: collapse;
+}
+
+/******************************
+ * SUMMARY INFORMATION
+ ******************************/
+#environment td {
+  padding: 5px;
+  border: 1px solid #E6E6E6;
+}
+#environment tr:nth-child(odd) {
+  background-color: #f6f6f6;
+}
+
+/******************************
+ * TEST RESULT COLORS
+ ******************************/
+span.passed,
+.passed .col-result {
+  color: green;
+}
+
+span.skipped,
+span.xfailed,
+span.rerun,
+.skipped .col-result,
+.xfailed .col-result,
+.rerun .col-result {
+  color: orange;
+}
+
+span.error,
+span.failed,
+span.xpassed,
+.error .col-result,
+.failed .col-result,
+.xpassed .col-result {
+  color: red;
+}
+
+/******************************
+ * RESULTS TABLE
+ *
+ * 1. Table Layout
+ * 2. Extra
+ * 3. Sorting items
+ *
+ ******************************/
+/*------------------
+ * 1. Table Layout
+ *------------------*/
+#results-table {
+  border: 1px solid #e6e6e6;
+  color: #999;
+  font-size: 12px;
+  width: 100%;
+}
+#results-table th,
+#results-table td {
+  padding: 5px;
+  border: 1px solid #E6E6E6;
+  text-align: left;
+}
+#results-table th {
+  font-weight: bold;
+}
+
+/*------------------
+ * 2. Extra
+ *------------------*/
+.log {
+  background-color: #e6e6e6;
+  border: 1px solid #e6e6e6;
+  color: black;
+  display: block;
+  font-family: "Courier New", Courier, monospace;
+  height: 230px;
+  overflow-y: scroll;
+  padding: 5px;
+  white-space: pre-wrap;
+}
+.log:only-child {
+  height: inherit;
+}
+
+div.image {
+  border: 1px solid #e6e6e6;
+  float: right;
+  height: 240px;
+  margin-left: 5px;
+  overflow: hidden;
+  width: 320px;
+}
+div.image img {
+  width: 320px;
+}
+
+div.video {
+  border: 1px solid #e6e6e6;
+  float: right;
+  height: 240px;
+  margin-left: 5px;
+  overflow: hidden;
+  width: 320px;
+}
+div.video video {
+  overflow: hidden;
+  width: 320px;
+  height: 240px;
+}
+
+.collapsed {
+  display: none;
+}
+
+.expander::after {
+  content: " (show details)";
+  color: #BBB;
+  font-style: italic;
+  cursor: pointer;
+}
+
+.collapser::after {
+  content: " (hide details)";
+  color: #BBB;
+  font-style: italic;
+  cursor: pointer;
+}
+
+/*------------------
+ * 3. Sorting items
+ *------------------*/
+.sortable {
+  cursor: pointer;
+}
+
+.sort-icon {
+  font-size: 0px;
+  float: left;
+  margin-right: 5px;
+  margin-top: 5px;
+  /*triangle*/
+  width: 0;
+  height: 0;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+}
+.inactive .sort-icon {
+  /*finish triangle*/
+  border-top: 8px solid #E6E6E6;
+}
+.asc.active .sort-icon {
+  /*finish triangle*/
+  border-bottom: 8px solid #999;
+}
+.desc.active .sort-icon {
+  /*finish triangle*/
+  border-top: 8px solid #999;
+}
+</style></head>
+  <body onLoad="init()">
+    <script>/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+
+function toArray(iter) {
+    if (iter === null) {
+        return null;
+    }
+    return Array.prototype.slice.call(iter);
+}
+
+function find(selector, elem) { // eslint-disable-line no-redeclare
+    if (!elem) {
+        elem = document;
+    }
+    return elem.querySelector(selector);
+}
+
+function findAll(selector, elem) {
+    if (!elem) {
+        elem = document;
+    }
+    return toArray(elem.querySelectorAll(selector));
+}
+
+function sortColumn(elem) {
+    toggleSortStates(elem);
+    const colIndex = toArray(elem.parentNode.childNodes).indexOf(elem);
+    let key;
+    if (elem.classList.contains('result')) {
+        key = keyResult;
+    } else if (elem.classList.contains('links')) {
+        key = keyLink;
+    } else {
+        key = keyAlpha;
+    }
+    sortTable(elem, key(colIndex));
+}
+
+function showAllExtras() { // eslint-disable-line no-unused-vars
+    findAll('.col-result').forEach(showExtras);
+}
+
+function hideAllExtras() { // eslint-disable-line no-unused-vars
+    findAll('.col-result').forEach(hideExtras);
+}
+
+function showExtras(colresultElem) {
+    const extras = colresultElem.parentNode.nextElementSibling;
+    const expandcollapse = colresultElem.firstElementChild;
+    extras.classList.remove('collapsed');
+    expandcollapse.classList.remove('expander');
+    expandcollapse.classList.add('collapser');
+}
+
+function hideExtras(colresultElem) {
+    const extras = colresultElem.parentNode.nextElementSibling;
+    const expandcollapse = colresultElem.firstElementChild;
+    extras.classList.add('collapsed');
+    expandcollapse.classList.remove('collapser');
+    expandcollapse.classList.add('expander');
+}
+
+function showFilters() {
+    const filterItems = document.getElementsByClassName('filter');
+    for (let i = 0; i < filterItems.length; i++)
+        filterItems[i].hidden = false;
+}
+
+function addCollapse() {
+    // Add links for show/hide all
+    const resulttable = find('table#results-table');
+    const showhideall = document.createElement('p');
+    showhideall.innerHTML = '<a href="javascript:showAllExtras()">Show all details</a> / ' +
+                            '<a href="javascript:hideAllExtras()">Hide all details</a>';
+    resulttable.parentElement.insertBefore(showhideall, resulttable);
+
+    // Add show/hide link to each result
+    findAll('.col-result').forEach(function(elem) {
+        const collapsed = getQueryParameter('collapsed') || 'Passed';
+        const extras = elem.parentNode.nextElementSibling;
+        const expandcollapse = document.createElement('span');
+        if (extras.classList.contains('collapsed')) {
+            expandcollapse.classList.add('expander');
+        } else if (collapsed.includes(elem.innerHTML)) {
+            extras.classList.add('collapsed');
+            expandcollapse.classList.add('expander');
+        } else {
+            expandcollapse.classList.add('collapser');
+        }
+        elem.appendChild(expandcollapse);
+
+        elem.addEventListener('click', function(event) {
+            if (event.currentTarget.parentNode.nextElementSibling.classList.contains('collapsed')) {
+                showExtras(event.currentTarget);
+            } else {
+                hideExtras(event.currentTarget);
+            }
+        });
+    });
+}
+
+function getQueryParameter(name) {
+    const match = RegExp('[?&]' + name + '=([^&]*)').exec(window.location.search);
+    return match && decodeURIComponent(match[1].replace(/\+/g, ' '));
+}
+
+function init () { // eslint-disable-line no-unused-vars
+    resetSortHeaders();
+
+    addCollapse();
+
+    showFilters();
+
+    sortColumn(find('.initial-sort'));
+
+    findAll('.sortable').forEach(function(elem) {
+        elem.addEventListener('click',
+            function() {
+                sortColumn(elem);
+            }, false);
+    });
+}
+
+function sortTable(clicked, keyFunc) {
+    const rows = findAll('.results-table-row');
+    const reversed = !clicked.classList.contains('asc');
+    const sortedRows = sort(rows, keyFunc, reversed);
+    /* Whole table is removed here because browsers acts much slower
+     * when appending existing elements.
+     */
+    const thead = document.getElementById('results-table-head');
+    document.getElementById('results-table').remove();
+    const parent = document.createElement('table');
+    parent.id = 'results-table';
+    parent.appendChild(thead);
+    sortedRows.forEach(function(elem) {
+        parent.appendChild(elem);
+    });
+    document.getElementsByTagName('BODY')[0].appendChild(parent);
+}
+
+function sort(items, keyFunc, reversed) {
+    const sortArray = items.map(function(item, i) {
+        return [keyFunc(item), i];
+    });
+
+    sortArray.sort(function(a, b) {
+        const keyA = a[0];
+        const keyB = b[0];
+
+        if (keyA == keyB) return 0;
+
+        if (reversed) {
+            return keyA < keyB ? 1 : -1;
+        } else {
+            return keyA > keyB ? 1 : -1;
+        }
+    });
+
+    return sortArray.map(function(item) {
+        const index = item[1];
+        return items[index];
+    });
+}
+
+function keyAlpha(colIndex) {
+    return function(elem) {
+        return elem.childNodes[1].childNodes[colIndex].firstChild.data.toLowerCase();
+    };
+}
+
+function keyLink(colIndex) {
+    return function(elem) {
+        const dataCell = elem.childNodes[1].childNodes[colIndex].firstChild;
+        return dataCell == null ? '' : dataCell.innerText.toLowerCase();
+    };
+}
+
+function keyResult(colIndex) {
+    return function(elem) {
+        const strings = ['Error', 'Failed', 'Rerun', 'XFailed', 'XPassed',
+            'Skipped', 'Passed'];
+        return strings.indexOf(elem.childNodes[1].childNodes[colIndex].firstChild.data);
+    };
+}
+
+function resetSortHeaders() {
+    findAll('.sort-icon').forEach(function(elem) {
+        elem.parentNode.removeChild(elem);
+    });
+    findAll('.sortable').forEach(function(elem) {
+        const icon = document.createElement('div');
+        icon.className = 'sort-icon';
+        icon.textContent = 'vvv';
+        elem.insertBefore(icon, elem.firstChild);
+        elem.classList.remove('desc', 'active');
+        elem.classList.add('asc', 'inactive');
+    });
+}
+
+function toggleSortStates(elem) {
+    //if active, toggle between asc and desc
+    if (elem.classList.contains('active')) {
+        elem.classList.toggle('asc');
+        elem.classList.toggle('desc');
+    }
+
+    //if inactive, reset all other functions and add ascending active
+    if (elem.classList.contains('inactive')) {
+        resetSortHeaders();
+        elem.classList.remove('inactive');
+        elem.classList.add('active');
+    }
+}
+
+function isAllRowsHidden(value) {
+    return value.hidden == false;
+}
+
+function filterTable(elem) { // eslint-disable-line no-unused-vars
+    const outcomeAtt = 'data-test-result';
+    const outcome = elem.getAttribute(outcomeAtt);
+    const classOutcome = outcome + ' results-table-row';
+    const outcomeRows = document.getElementsByClassName(classOutcome);
+
+    for(let i = 0; i < outcomeRows.length; i++){
+        outcomeRows[i].hidden = !elem.checked;
+    }
+
+    const rows = findAll('.results-table-row').filter(isAllRowsHidden);
+    const allRowsHidden = rows.length == 0 ? true : false;
+    const notFoundMessage = document.getElementById('not-found-message');
+    notFoundMessage.hidden = !allRowsHidden;
+}
+</script>
+    <h1>report.html</h1>
+    <p>Report generated on 16-Aug-2022 at 11:17:55 by <a href="https://pypi.python.org/pypi/pytest-html">pytest-html</a> v3.1.1</p>
+    <h2>Environment</h2>
+    <table id="environment">
+      <tr>
+        <td>Packages</td>
+        <td>{"pluggy": "1.0.0", "py": "1.11.0", "pytest": "7.1.2"}</td></tr>
+      <tr>
+        <td>Platform</td>
+        <td>macOS-12.5-arm64-arm-64bit</td></tr>
+      <tr>
+        <td>Plugins</td>
+        <td>{"catchlog": "1.2.2", "html": "3.1.1", "metadata": "2.0.2", "order": "1.0.1", "rerunfailures": "10.2"}</td></tr>
+      <tr>
+        <td>Python</td>
+        <td>3.10.5</td></tr></table>
+    <h2>Summary</h2>
+    <p>1 tests ran in 10.13 seconds. </p>
+    <p class="filter" hidden="true">(Un)check the boxes to filter the results.</p><input checked="true" class="filter" data-test-result="passed" disabled="true" hidden="true" name="filter_checkbox" onChange="filterTable(this)" type="checkbox"/><span class="passed">0 passed</span>, <input checked="true" class="filter" data-test-result="skipped" disabled="true" hidden="true" name="filter_checkbox" onChange="filterTable(this)" type="checkbox"/><span class="skipped">0 skipped</span>, <input checked="true" class="filter" data-test-result="failed" hidden="true" name="filter_checkbox" onChange="filterTable(this)" type="checkbox"/><span class="failed">1 failed</span>, <input checked="true" class="filter" data-test-result="error" disabled="true" hidden="true" name="filter_checkbox" onChange="filterTable(this)" type="checkbox"/><span class="error">0 errors</span>, <input checked="true" class="filter" data-test-result="xfailed" disabled="true" hidden="true" name="filter_checkbox" onChange="filterTable(this)" type="checkbox"/><span class="xfailed">0 expected failures</span>, <input checked="true" class="filter" data-test-result="xpassed" disabled="true" hidden="true" name="filter_checkbox" onChange="filterTable(this)" type="checkbox"/><span class="xpassed">0 unexpected passes</span>, <input checked="true" class="filter" data-test-result="rerun" disabled="true" hidden="true" name="filter_checkbox" onChange="filterTable(this)" type="checkbox"/><span class="rerun">0 rerun</span>
+    <h2>Results</h2>
+    <table id="results-table">
+      <thead id="results-table-head">
+        <tr>
+          <th class="sortable result initial-sort" col="result">Result</th>
+          <th class="sortable" col="name">Test</th>
+          <th class="sortable" col="duration">Duration</th>
+          <th class="sortable links" col="links">Links</th></tr>
+        <tr hidden="true" id="not-found-message">
+          <th colspan="4">No results found. Try to check the filters</th></tr></thead>
+      <tbody class="failed results-table-row">
+        <tr>
+          <td class="col-result">Failed</td>
+          <td class="col-name">tests/unit/test_add_advert.py::TestAddAdvert::test_add_advert[advert0]</td>
+          <td class="col-duration">10.06</td>
+          <td class="col-links"></td></tr>
+        <tr class="collapsed">
+          <td class="extra" colspan="4">
+            <div class="log">self = &lt;unit.test_add_advert.TestAddAdvert object at 0x104b27490&gt;<br/>advert = {&#x27;advert_type&#x27;: &#x27;private&#x27;, &#x27;auto_reneval&#x27;: False, &#x27;description&#x27;: &#x27;Lorem ipsum dolor sit amet, consectetur adipiscing elit.Mauris gravida quam eget ligula erat curae.&#x27;, &#x27;item_condition&#x27;: 1, ...}<br/><br/>    @pytest.mark.parametrize(&#x27;advert&#x27;, testdata_advert_form_fields)<br/>    def test_add_advert(self, advert):<br/>&gt;       self.page_add_advert.fill_in(advert)<br/><br/>tests/unit/test_add_advert.py:21: <br/>_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ <br/>pages/page_add_advert.py:23: in fill_in<br/>    self.fill_in_additional_info()<br/>pages/page_add_advert.py:67: in fill_in_additional_info<br/>    element.click()<br/>.venv/lib/python3.10/site-packages/selenium/webdriver/remote/webelement.py:88: in click<br/>    self._execute(Command.CLICK_ELEMENT)<br/>.venv/lib/python3.10/site-packages/selenium/webdriver/remote/webelement.py:396: in _execute<br/>    return self._parent.execute(command, params)<br/>.venv/lib/python3.10/site-packages/selenium/webdriver/remote/webdriver.py:435: in execute<br/>    self.error_handler.check_response(response)<br/>_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ <br/><br/>self = &lt;selenium.webdriver.remote.errorhandler.ErrorHandler object at 0x104b26e30&gt;<br/>response = {&#x27;status&#x27;: 400, &#x27;value&#x27;: &#x27;{&quot;value&quot;:{&quot;error&quot;:&quot;element not interactable&quot;,&quot;message&quot;:&quot;&quot;,&quot;stacktrace&quot;:&quot;&quot;}}&#x27;}<br/><br/>    def check_response(self, response: Dict[str, Any]) -&gt; None:<br/>        &quot;&quot;&quot;<br/>        Checks that a JSON response from the WebDriver does not have an error.<br/>    <br/>        :Args:<br/>         - response - The JSON response from the WebDriver server as a dictionary<br/>           object.<br/>    <br/>        :Raises: If the response contains an error message.<br/>        &quot;&quot;&quot;<br/>        status = response.get(&#x27;status&#x27;, None)<br/>        if not status or status == ErrorCode.SUCCESS:<br/>            return<br/>        value = None<br/>        message = response.get(&quot;message&quot;, &quot;&quot;)<br/>        screen: str = response.get(&quot;screen&quot;, &quot;&quot;)<br/>        stacktrace = None<br/>        if isinstance(status, int):<br/>            value_json = response.get(&#x27;value&#x27;, None)<br/>            if value_json and isinstance(value_json, str):<br/>                import json<br/>                try:<br/>                    value = json.loads(value_json)<br/>                    if len(value.keys()) == 1:<br/>                        value = value[&#x27;value&#x27;]<br/>                    status = value.get(&#x27;error&#x27;, None)<br/>                    if not status:<br/>                        status = value.get(&quot;status&quot;, ErrorCode.UNKNOWN_ERROR)<br/>                        message = value.get(&quot;value&quot;) or value.get(&quot;message&quot;)<br/>                        if not isinstance(message, str):<br/>                            value = message<br/>                            message = message.get(&#x27;message&#x27;)<br/>                    else:<br/>                        message = value.get(&#x27;message&#x27;, None)<br/>                except ValueError:<br/>                    pass<br/>    <br/>        exception_class: Type[WebDriverException]<br/>        if status in ErrorCode.NO_SUCH_ELEMENT:<br/>            exception_class = NoSuchElementException<br/>        elif status in ErrorCode.NO_SUCH_FRAME:<br/>            exception_class = NoSuchFrameException<br/>        elif status in ErrorCode.NO_SUCH_SHADOW_ROOT:<br/>            exception_class = NoSuchShadowRootException<br/>        elif status in ErrorCode.NO_SUCH_WINDOW:<br/>            exception_class = NoSuchWindowException<br/>        elif status in ErrorCode.STALE_ELEMENT_REFERENCE:<br/>            exception_class = StaleElementReferenceException<br/>        elif status in ErrorCode.ELEMENT_NOT_VISIBLE:<br/>            exception_class = ElementNotVisibleException<br/>        elif status in ErrorCode.INVALID_ELEMENT_STATE:<br/>            exception_class = InvalidElementStateException<br/>        elif status in ErrorCode.INVALID_SELECTOR \<br/>                or status in ErrorCode.INVALID_XPATH_SELECTOR \<br/>                or status in ErrorCode.INVALID_XPATH_SELECTOR_RETURN_TYPER:<br/>            exception_class = InvalidSelectorException<br/>        elif status in ErrorCode.ELEMENT_IS_NOT_SELECTABLE:<br/>            exception_class = ElementNotSelectableException<br/>        elif status in ErrorCode.ELEMENT_NOT_INTERACTABLE:<br/>            exception_class = ElementNotInteractableException<br/>        elif status in ErrorCode.INVALID_COOKIE_DOMAIN:<br/>            exception_class = InvalidCookieDomainException<br/>        elif status in ErrorCode.UNABLE_TO_SET_COOKIE:<br/>            exception_class = UnableToSetCookieException<br/>        elif status in ErrorCode.TIMEOUT:<br/>            exception_class = TimeoutException<br/>        elif status in ErrorCode.SCRIPT_TIMEOUT:<br/>            exception_class = TimeoutException<br/>        elif status in ErrorCode.UNKNOWN_ERROR:<br/>            exception_class = WebDriverException<br/>        elif status in ErrorCode.UNEXPECTED_ALERT_OPEN:<br/>            exception_class = UnexpectedAlertPresentException<br/>        elif status in ErrorCode.NO_ALERT_OPEN:<br/>            exception_class = NoAlertPresentException<br/>        elif status in ErrorCode.IME_NOT_AVAILABLE:<br/>            exception_class = ImeNotAvailableException<br/>        elif status in ErrorCode.IME_ENGINE_ACTIVATION_FAILED:<br/>            exception_class = ImeActivationFailedException<br/>        elif status in ErrorCode.MOVE_TARGET_OUT_OF_BOUNDS:<br/>            exception_class = MoveTargetOutOfBoundsException<br/>        elif status in ErrorCode.JAVASCRIPT_ERROR:<br/>            exception_class = JavascriptException<br/>        elif status in ErrorCode.SESSION_NOT_CREATED:<br/>            exception_class = SessionNotCreatedException<br/>        elif status in ErrorCode.INVALID_ARGUMENT:<br/>            exception_class = InvalidArgumentException<br/>        elif status in ErrorCode.NO_SUCH_COOKIE:<br/>            exception_class = NoSuchCookieException<br/>        elif status in ErrorCode.UNABLE_TO_CAPTURE_SCREEN:<br/>            exception_class = ScreenshotException<br/>        elif status in ErrorCode.ELEMENT_CLICK_INTERCEPTED:<br/>            exception_class = ElementClickInterceptedException<br/>        elif status in ErrorCode.INSECURE_CERTIFICATE:<br/>            exception_class = InsecureCertificateException<br/>        elif status in ErrorCode.INVALID_COORDINATES:<br/>            exception_class = InvalidCoordinatesException<br/>        elif status in ErrorCode.INVALID_SESSION_ID:<br/>            exception_class = InvalidSessionIdException<br/>        elif status in ErrorCode.UNKNOWN_METHOD:<br/>            exception_class = UnknownMethodException<br/>        else:<br/>            exception_class = WebDriverException<br/>        if not value:<br/>            value = response[&#x27;value&#x27;]<br/>        if isinstance(value, str):<br/>            raise exception_class(value)<br/>        if message == &quot;&quot; and &#x27;message&#x27; in value:<br/>            message = value[&#x27;message&#x27;]<br/>    <br/>        screen = None  # type: ignore[assignment]<br/>        if &#x27;screen&#x27; in value:<br/>            screen = value[&#x27;screen&#x27;]<br/>    <br/>        stacktrace = None<br/>        st_value = value.get(&#x27;stackTrace&#x27;) or value.get(&#x27;stacktrace&#x27;)<br/>        if st_value:<br/>            if isinstance(st_value, str):<br/>                stacktrace = st_value.split(&#x27;\n&#x27;)<br/>            else:<br/>                stacktrace = []<br/>                try:<br/>                    for frame in st_value:<br/>                        line = self._value_or_default(frame, &#x27;lineNumber&#x27;, &#x27;&#x27;)<br/>                        file = self._value_or_default(frame, &#x27;fileName&#x27;, &#x27;&lt;anonymous&gt;&#x27;)<br/>                        if line:<br/>                            file = f&quot;{file}:{line}&quot;<br/>                        meth = self._value_or_default(frame, &#x27;methodName&#x27;, &#x27;&lt;anonymous&gt;&#x27;)<br/>                        if &#x27;className&#x27; in frame:<br/>                            meth = &quot;{}.{}&quot;.format(frame[&#x27;className&#x27;], meth)<br/>                        msg = &quot;    at %s (%s)&quot;<br/>                        msg = msg % (meth, file)<br/>                        stacktrace.append(msg)<br/>                except TypeError:<br/>                    pass<br/>        if exception_class == UnexpectedAlertPresentException:<br/>            alert_text = None<br/>            if &#x27;data&#x27; in value:<br/>                alert_text = value[&#x27;data&#x27;].get(&#x27;text&#x27;)<br/>            elif &#x27;alert&#x27; in value:<br/>                alert_text = value[&#x27;alert&#x27;].get(&#x27;text&#x27;)<br/>            raise exception_class(message, screen, stacktrace, alert_text)  # type: ignore[call-arg]  # mypy is not smart enough here<br/>&gt;       raise exception_class(message, screen, stacktrace)<br/><span class="error">E       selenium.common.exceptions.ElementNotInteractableException: Message:</span><br/><br/>.venv/lib/python3.10/site-packages/selenium/webdriver/remote/errorhandler.py:247: ElementNotInteractableException<br/> -------------------------------Captured log setup------------------------------- <br/>INFO     tests._logger:conftest.py:18 Preparing instance of Webdriver
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:358 POST http://localhost:53361/session {&quot;capabilities&quot;: {&quot;firstMatch&quot;: [{}], &quot;alwaysMatch&quot;: {&quot;browserName&quot;: &quot;safari&quot;, &quot;platformName&quot;: &quot;mac&quot;, &quot;pageLoadStrategy&quot;: &quot;normal&quot;}}}
+DEBUG    urllib3.connectionpool:connectionpool.py:228 Starting new HTTP connection (1): localhost:53361
+DEBUG    urllib3.connectionpool:connectionpool.py:456 http://localhost:53361 &quot;POST /session HTTP/1.1&quot; 200 542
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:380 Remote response: status=200 | data={&quot;value&quot;:{&quot;sessionId&quot;:&quot;163D5AEA-601B-4BF0-A617-F6C3C9D90622&quot;,&quot;capabilities&quot;:{&quot;safari:platformVersion&quot;:&quot;12.5&quot;,&quot;safari:automaticInspection&quot;:false,&quot;webkit:WebRTC&quot;:{&quot;DisableICECandidateFiltering&quot;:false,&quot;DisableInsecureMediaCapture&quot;:false},&quot;browserVersion&quot;:&quot;15.6&quot;,&quot;strictFileInteractability&quot;:false,&quot;browserName&quot;:&quot;Safari&quot;,&quot;safari:useSimulator&quot;:false,&quot;safari:platformBuildVersion&quot;:&quot;21G72&quot;,&quot;setWindowRect&quot;:true,&quot;acceptInsecureCerts&quot;:false,&quot;safari:automaticProfiling&quot;:false,&quot;pageLoadStrategy&quot;:&quot;normal&quot;,&quot;platformName&quot;:&quot;macOS&quot;,&quot;safari:diagnose&quot;:false}}} | headers=HTTPHeaderDict({&#x27;Server&#x27;: &#x27;safaridriver [17613.3.9.1.5]&#x27;, &#x27;Content-Type&#x27;: &#x27;application/json; charset=utf-8&#x27;, &#x27;Date&#x27;: &#x27;Tue, 16 Aug 2022 09:17:47 GMT&#x27;, &#x27;Accept-Ranges&#x27;: &#x27;bytes&#x27;, &#x27;Content-Length&#x27;: &#x27;542&#x27;, &#x27;Cache-Control&#x27;: &#x27;no-cache&#x27;, &#x27;Connection&#x27;: &#x27;keep-alive&#x27;})
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:409 Finished Request
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:358 POST http://localhost:53361/session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/window/maximize {}
+DEBUG    urllib3.connectionpool:connectionpool.py:456 http://localhost:53361 &quot;POST /session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/window/maximize HTTP/1.1&quot; 200 50
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:380 Remote response: status=200 | data={&quot;value&quot;:{&quot;y&quot;:25,&quot;x&quot;:0,&quot;width&quot;:1440,&quot;height&quot;:812}} | headers=HTTPHeaderDict({&#x27;Server&#x27;: &#x27;safaridriver [17613.3.9.1.5]&#x27;, &#x27;Content-Type&#x27;: &#x27;application/json; charset=utf-8&#x27;, &#x27;Date&#x27;: &#x27;Tue, 16 Aug 2022 09:17:47 GMT&#x27;, &#x27;Accept-Ranges&#x27;: &#x27;bytes&#x27;, &#x27;Content-Length&#x27;: &#x27;50&#x27;, &#x27;Cache-Control&#x27;: &#x27;no-cache&#x27;, &#x27;Connection&#x27;: &#x27;keep-alive&#x27;})
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:409 Finished Request
+INFO     tests._logger:_logger.py:15 Execution of Test Case: TEST_ADD_ADVERT[ADVERT0] has started.
+INFO     tests._webdriver:_webdriver.py:54 Loading cookies from pickle file.
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:358 POST http://localhost:53361/session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/cookie {&quot;cookie&quot;: {&quot;expiry&quot;: 1691744900, &quot;secure&quot;: false, &quot;domain&quot;: &quot;.olx.pl&quot;, &quot;httpOnly&quot;: false, &quot;value&quot;: &quot;cars-31364@a#cars-31875@b#cars-33524@b#cars-33919@b#er-1598@b#er-1669@a#er-1697@a#er-1708@c#er-1725@a#erm-796@d#euonb-524@b#gs-8410@b#jobs-3482@a#jobs-3722@a#jobs-3728@b#oesx-1547@a#oesx-1770@b#oesx-1803@b#oeu2u-2323@b&quot;, &quot;path&quot;: &quot;/&quot;, &quot;name&quot;: &quot;laquesis&quot;}}
+DEBUG    urllib3.connectionpool:connectionpool.py:456 http://localhost:53361 &quot;POST /session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/cookie HTTP/1.1&quot; 200 14
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:380 Remote response: status=200 | data={&quot;value&quot;:null} | headers=HTTPHeaderDict({&#x27;Server&#x27;: &#x27;safaridriver [17613.3.9.1.5]&#x27;, &#x27;Content-Type&#x27;: &#x27;application/json; charset=utf-8&#x27;, &#x27;Date&#x27;: &#x27;Tue, 16 Aug 2022 09:17:47 GMT&#x27;, &#x27;Accept-Ranges&#x27;: &#x27;bytes&#x27;, &#x27;Content-Length&#x27;: &#x27;14&#x27;, &#x27;Cache-Control&#x27;: &#x27;no-cache&#x27;, &#x27;Connection&#x27;: &#x27;keep-alive&#x27;})
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:409 Finished Request
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:358 POST http://localhost:53361/session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/cookie {&quot;cookie&quot;: {&quot;path&quot;: &quot;/&quot;, &quot;value&quot;: &quot;true&quot;, &quot;httpOnly&quot;: false, &quot;name&quot;: &quot;ldTd&quot;, &quot;secure&quot;: false, &quot;domain&quot;: &quot;.olx.pl&quot;}}
+DEBUG    urllib3.connectionpool:connectionpool.py:456 http://localhost:53361 &quot;POST /session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/cookie HTTP/1.1&quot; 200 14
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:380 Remote response: status=200 | data={&quot;value&quot;:null} | headers=HTTPHeaderDict({&#x27;Server&#x27;: &#x27;safaridriver [17613.3.9.1.5]&#x27;, &#x27;Content-Type&#x27;: &#x27;application/json; charset=utf-8&#x27;, &#x27;Date&#x27;: &#x27;Tue, 16 Aug 2022 09:17:47 GMT&#x27;, &#x27;Accept-Ranges&#x27;: &#x27;bytes&#x27;, &#x27;Content-Length&#x27;: &#x27;14&#x27;, &#x27;Cache-Control&#x27;: &#x27;no-cache&#x27;, &#x27;Connection&#x27;: &#x27;keep-alive&#x27;})
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:409 Finished Request
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:358 POST http://localhost:53361/session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/cookie {&quot;cookie&quot;: {&quot;expiry&quot;: 1691744900, &quot;secure&quot;: false, &quot;domain&quot;: &quot;.olx.pl&quot;, &quot;httpOnly&quot;: false, &quot;value&quot;: &quot;1660642099|182a5e93058x2d2fea4a|oesx-1803||&quot;, &quot;path&quot;: &quot;/&quot;, &quot;name&quot;: &quot;lqstatus&quot;}}
+DEBUG    urllib3.connectionpool:connectionpool.py:456 http://localhost:53361 &quot;POST /session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/cookie HTTP/1.1&quot; 200 14
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:380 Remote response: status=200 | data={&quot;value&quot;:null} | headers=HTTPHeaderDict({&#x27;Server&#x27;: &#x27;safaridriver [17613.3.9.1.5]&#x27;, &#x27;Content-Type&#x27;: &#x27;application/json; charset=utf-8&#x27;, &#x27;Date&#x27;: &#x27;Tue, 16 Aug 2022 09:17:47 GMT&#x27;, &#x27;Accept-Ranges&#x27;: &#x27;bytes&#x27;, &#x27;Content-Length&#x27;: &#x27;14&#x27;, &#x27;Cache-Control&#x27;: &#x27;no-cache&#x27;, &#x27;Connection&#x27;: &#x27;keep-alive&#x27;})
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:409 Finished Request
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:358 POST http://localhost:53361/session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/cookie {&quot;cookie&quot;: {&quot;expiry&quot;: 1660641500, &quot;secure&quot;: false, &quot;domain&quot;: &quot;.olx.pl&quot;, &quot;httpOnly&quot;: false, &quot;value&quot;: &quot;CF&quot;, &quot;path&quot;: &quot;/&quot;, &quot;name&quot;: &quot;newrelic_cdn_name&quot;}}
+DEBUG    urllib3.connectionpool:connectionpool.py:456 http://localhost:53361 &quot;POST /session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/cookie HTTP/1.1&quot; 200 14
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:380 Remote response: status=200 | data={&quot;value&quot;:null} | headers=HTTPHeaderDict({&#x27;Server&#x27;: &#x27;safaridriver [17613.3.9.1.5]&#x27;, &#x27;Content-Type&#x27;: &#x27;application/json; charset=utf-8&#x27;, &#x27;Date&#x27;: &#x27;Tue, 16 Aug 2022 09:17:47 GMT&#x27;, &#x27;Accept-Ranges&#x27;: &#x27;bytes&#x27;, &#x27;Content-Length&#x27;: &#x27;14&#x27;, &#x27;Cache-Control&#x27;: &#x27;no-cache&#x27;, &#x27;Connection&#x27;: &#x27;keep-alive&#x27;})
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:409 Finished Request
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:358 POST http://localhost:53361/session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/cookie {&quot;cookie&quot;: {&quot;expiry&quot;: 1691744900, &quot;secure&quot;: false, &quot;domain&quot;: &quot;.olx.pl&quot;, &quot;httpOnly&quot;: false, &quot;value&quot;: &quot;182a5e93058x2d2fea4a-1-182a5e93058x2d2fea4a-4-1660642701&quot;, &quot;path&quot;: &quot;/&quot;, &quot;name&quot;: &quot;onap&quot;}}
+DEBUG    urllib3.connectionpool:connectionpool.py:456 http://localhost:53361 &quot;POST /session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/cookie HTTP/1.1&quot; 200 14
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:380 Remote response: status=200 | data={&quot;value&quot;:null} | headers=HTTPHeaderDict({&#x27;Server&#x27;: &#x27;safaridriver [17613.3.9.1.5]&#x27;, &#x27;Content-Type&#x27;: &#x27;application/json; charset=utf-8&#x27;, &#x27;Date&#x27;: &#x27;Tue, 16 Aug 2022 09:17:47 GMT&#x27;, &#x27;Accept-Ranges&#x27;: &#x27;bytes&#x27;, &#x27;Content-Length&#x27;: &#x27;14&#x27;, &#x27;Cache-Control&#x27;: &#x27;no-cache&#x27;, &#x27;Connection&#x27;: &#x27;keep-alive&#x27;})
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:409 Finished Request
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:358 POST http://localhost:53361/session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/cookie {&quot;cookie&quot;: {&quot;expiry&quot;: 1676192900, &quot;secure&quot;: false, &quot;domain&quot;: &quot;.olx.pl&quot;, &quot;httpOnly&quot;: false, &quot;value&quot;: &quot;typ%3Dtypein%7C%7C%7Csrc%3D%28direct%29%7C%7C%7Cmdm%3D%28none%29%7C%7C%7Ccmp%3D%28none%29%7C%7C%7Ccnt%3D%28none%29%7C%7C%7Ctrm%3D%28none%29&quot;, &quot;path&quot;: &quot;/&quot;, &quot;name&quot;: &quot;sbjs_current&quot;}}
+DEBUG    urllib3.connectionpool:connectionpool.py:456 http://localhost:53361 &quot;POST /session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/cookie HTTP/1.1&quot; 200 14
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:380 Remote response: status=200 | data={&quot;value&quot;:null} | headers=HTTPHeaderDict({&#x27;Server&#x27;: &#x27;safaridriver [17613.3.9.1.5]&#x27;, &#x27;Content-Type&#x27;: &#x27;application/json; charset=utf-8&#x27;, &#x27;Date&#x27;: &#x27;Tue, 16 Aug 2022 09:17:47 GMT&#x27;, &#x27;Accept-Ranges&#x27;: &#x27;bytes&#x27;, &#x27;Content-Length&#x27;: &#x27;14&#x27;, &#x27;Cache-Control&#x27;: &#x27;no-cache&#x27;, &#x27;Connection&#x27;: &#x27;keep-alive&#x27;})
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:409 Finished Request
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:358 POST http://localhost:53361/session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/cookie {&quot;cookie&quot;: {&quot;expiry&quot;: 1676192900, &quot;secure&quot;: false, &quot;domain&quot;: &quot;.olx.pl&quot;, &quot;httpOnly&quot;: false, &quot;value&quot;: &quot;fd%3D2022-08-16%2011%3A08%3A20%7C%7C%7Cep%3Dhttps%3A%2F%2Fwww.olx.pl%2Fd%2Fmojolx%2F%23login%7C%7C%7Crf%3Dhttps%3A%2F%2Fwww.olx.pl%2Fkonto%2F&quot;, &quot;path&quot;: &quot;/&quot;, &quot;name&quot;: &quot;sbjs_current_add&quot;}}
+DEBUG    urllib3.connectionpool:connectionpool.py:456 http://localhost:53361 &quot;POST /session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/cookie HTTP/1.1&quot; 200 14
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:380 Remote response: status=200 | data={&quot;value&quot;:null} | headers=HTTPHeaderDict({&#x27;Server&#x27;: &#x27;safaridriver [17613.3.9.1.5]&#x27;, &#x27;Content-Type&#x27;: &#x27;application/json; charset=utf-8&#x27;, &#x27;Date&#x27;: &#x27;Tue, 16 Aug 2022 09:17:47 GMT&#x27;, &#x27;Accept-Ranges&#x27;: &#x27;bytes&#x27;, &#x27;Content-Length&#x27;: &#x27;14&#x27;, &#x27;Cache-Control&#x27;: &#x27;no-cache&#x27;, &#x27;Connection&#x27;: &#x27;keep-alive&#x27;})
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:409 Finished Request
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:358 POST http://localhost:53361/session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/cookie {&quot;cookie&quot;: {&quot;expiry&quot;: 1676192900, &quot;secure&quot;: false, &quot;domain&quot;: &quot;.olx.pl&quot;, &quot;httpOnly&quot;: false, &quot;value&quot;: &quot;typ%3Dtypein%7C%7C%7Csrc%3D%28direct%29%7C%7C%7Cmdm%3D%28none%29%7C%7C%7Ccmp%3D%28none%29%7C%7C%7Ccnt%3D%28none%29%7C%7C%7Ctrm%3D%28none%29&quot;, &quot;path&quot;: &quot;/&quot;, &quot;name&quot;: &quot;sbjs_first&quot;}}
+DEBUG    urllib3.connectionpool:connectionpool.py:456 http://localhost:53361 &quot;POST /session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/cookie HTTP/1.1&quot; 200 14
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:380 Remote response: status=200 | data={&quot;value&quot;:null} | headers=HTTPHeaderDict({&#x27;Server&#x27;: &#x27;safaridriver [17613.3.9.1.5]&#x27;, &#x27;Content-Type&#x27;: &#x27;application/json; charset=utf-8&#x27;, &#x27;Date&#x27;: &#x27;Tue, 16 Aug 2022 09:17:47 GMT&#x27;, &#x27;Accept-Ranges&#x27;: &#x27;bytes&#x27;, &#x27;Content-Length&#x27;: &#x27;14&#x27;, &#x27;Cache-Control&#x27;: &#x27;no-cache&#x27;, &#x27;Connection&#x27;: &#x27;keep-alive&#x27;})
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:409 Finished Request
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:358 POST http://localhost:53361/session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/cookie {&quot;cookie&quot;: {&quot;expiry&quot;: 1676192900, &quot;secure&quot;: false, &quot;domain&quot;: &quot;.olx.pl&quot;, &quot;httpOnly&quot;: false, &quot;value&quot;: &quot;fd%3D2022-08-16%2011%3A08%3A20%7C%7C%7Cep%3Dhttps%3A%2F%2Fwww.olx.pl%2Fd%2Fmojolx%2F%23login%7C%7C%7Crf%3Dhttps%3A%2F%2Fwww.olx.pl%2Fkonto%2F&quot;, &quot;path&quot;: &quot;/&quot;, &quot;name&quot;: &quot;sbjs_first_add&quot;}}
+DEBUG    urllib3.connectionpool:connectionpool.py:456 http://localhost:53361 &quot;POST /session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/cookie HTTP/1.1&quot; 200 14
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:380 Remote response: status=200 | data={&quot;value&quot;:null} | headers=HTTPHeaderDict({&#x27;Server&#x27;: &#x27;safaridriver [17613.3.9.1.5]&#x27;, &#x27;Content-Type&#x27;: &#x27;application/json; charset=utf-8&#x27;, &#x27;Date&#x27;: &#x27;Tue, 16 Aug 2022 09:17:47 GMT&#x27;, &#x27;Accept-Ranges&#x27;: &#x27;bytes&#x27;, &#x27;Content-Length&#x27;: &#x27;14&#x27;, &#x27;Cache-Control&#x27;: &#x27;no-cache&#x27;, &#x27;Connection&#x27;: &#x27;keep-alive&#x27;})
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:409 Finished Request
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:358 POST http://localhost:53361/session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/cookie {&quot;cookie&quot;: {&quot;expiry&quot;: 1676192900, &quot;secure&quot;: false, &quot;domain&quot;: &quot;.olx.pl&quot;, &quot;httpOnly&quot;: false, &quot;value&quot;: &quot;1418474375998%3D1&quot;, &quot;path&quot;: &quot;/&quot;, &quot;name&quot;: &quot;sbjs_migrations&quot;}}
+DEBUG    urllib3.connectionpool:connectionpool.py:456 http://localhost:53361 &quot;POST /session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/cookie HTTP/1.1&quot; 200 14
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:380 Remote response: status=200 | data={&quot;value&quot;:null} | headers=HTTPHeaderDict({&#x27;Server&#x27;: &#x27;safaridriver [17613.3.9.1.5]&#x27;, &#x27;Content-Type&#x27;: &#x27;application/json; charset=utf-8&#x27;, &#x27;Date&#x27;: &#x27;Tue, 16 Aug 2022 09:17:47 GMT&#x27;, &#x27;Accept-Ranges&#x27;: &#x27;bytes&#x27;, &#x27;Content-Length&#x27;: &#x27;14&#x27;, &#x27;Cache-Control&#x27;: &#x27;no-cache&#x27;, &#x27;Connection&#x27;: &#x27;keep-alive&#x27;})
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:409 Finished Request
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:358 POST http://localhost:53361/session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/cookie {&quot;cookie&quot;: {&quot;expiry&quot;: 1660642700, &quot;secure&quot;: false, &quot;domain&quot;: &quot;.olx.pl&quot;, &quot;httpOnly&quot;: false, &quot;value&quot;: &quot;pgs%3D2%7C%7C%7Ccpg%3Dhttps%3A%2F%2Fwww.olx.pl%2Fd%2Fmojolx%2F%23login&quot;, &quot;path&quot;: &quot;/&quot;, &quot;name&quot;: &quot;sbjs_session&quot;}}
+DEBUG    urllib3.connectionpool:connectionpool.py:456 http://localhost:53361 &quot;POST /session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/cookie HTTP/1.1&quot; 200 14
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:380 Remote response: status=200 | data={&quot;value&quot;:null} | headers=HTTPHeaderDict({&#x27;Server&#x27;: &#x27;safaridriver [17613.3.9.1.5]&#x27;, &#x27;Content-Type&#x27;: &#x27;application/json; charset=utf-8&#x27;, &#x27;Date&#x27;: &#x27;Tue, 16 Aug 2022 09:17:47 GMT&#x27;, &#x27;Accept-Ranges&#x27;: &#x27;bytes&#x27;, &#x27;Content-Length&#x27;: &#x27;14&#x27;, &#x27;Cache-Control&#x27;: &#x27;no-cache&#x27;, &#x27;Connection&#x27;: &#x27;keep-alive&#x27;})
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:409 Finished Request
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:358 POST http://localhost:53361/session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/cookie {&quot;cookie&quot;: {&quot;expiry&quot;: 1676192900, &quot;secure&quot;: false, &quot;domain&quot;: &quot;.olx.pl&quot;, &quot;httpOnly&quot;: false, &quot;value&quot;: &quot;vst%3D1%7C%7C%7Cuip%3D%28none%29%7C%7C%7Cuag%3DMozilla%2F5.0%20%28Macintosh%3B%20Intel%20Mac%20OS%20X%2010_15_7%29%20AppleWebKit%2F605.1.15%20%28KHTML%2C%20like%20Gecko%29%20Version%2F15.6%20Safari%2F605.1.15&quot;, &quot;path&quot;: &quot;/&quot;, &quot;name&quot;: &quot;sbjs_udata&quot;}}
+DEBUG    urllib3.connectionpool:connectionpool.py:456 http://localhost:53361 &quot;POST /session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/cookie HTTP/1.1&quot; 200 14
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:380 Remote response: status=200 | data={&quot;value&quot;:null} | headers=HTTPHeaderDict({&#x27;Server&#x27;: &#x27;safaridriver [17613.3.9.1.5]&#x27;, &#x27;Content-Type&#x27;: &#x27;application/json; charset=utf-8&#x27;, &#x27;Date&#x27;: &#x27;Tue, 16 Aug 2022 09:17:47 GMT&#x27;, &#x27;Accept-Ranges&#x27;: &#x27;bytes&#x27;, &#x27;Content-Length&#x27;: &#x27;14&#x27;, &#x27;Cache-Control&#x27;: &#x27;no-cache&#x27;, &#x27;Connection&#x27;: &#x27;keep-alive&#x27;})
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:409 Finished Request
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:358 POST http://localhost:53361/session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/cookie {&quot;cookie&quot;: {&quot;expiry&quot;: 1692176900, &quot;secure&quot;: false, &quot;domain&quot;: &quot;www.olx.pl&quot;, &quot;httpOnly&quot;: false, &quot;value&quot;: &quot;9b87a339-0c40-496f-a8e0-b727de5814f6-ver2&quot;, &quot;path&quot;: &quot;/&quot;, &quot;name&quot;: &quot;dfp_user_id&quot;}}
+DEBUG    urllib3.connectionpool:connectionpool.py:456 http://localhost:53361 &quot;POST /session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/cookie HTTP/1.1&quot; 200 14
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:380 Remote response: status=200 | data={&quot;value&quot;:null} | headers=HTTPHeaderDict({&#x27;Server&#x27;: &#x27;safaridriver [17613.3.9.1.5]&#x27;, &#x27;Content-Type&#x27;: &#x27;application/json; charset=utf-8&#x27;, &#x27;Date&#x27;: &#x27;Tue, 16 Aug 2022 09:17:47 GMT&#x27;, &#x27;Accept-Ranges&#x27;: &#x27;bytes&#x27;, &#x27;Content-Length&#x27;: &#x27;14&#x27;, &#x27;Cache-Control&#x27;: &#x27;no-cache&#x27;, &#x27;Connection&#x27;: &#x27;keep-alive&#x27;})
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:409 Finished Request
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:358 POST http://localhost:53361/session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/cookie {&quot;cookie&quot;: {&quot;expiry&quot;: 1746954500, &quot;secure&quot;: false, &quot;domain&quot;: &quot;www.olx.pl&quot;, &quot;httpOnly&quot;: false, &quot;value&quot;: &quot;1660642700657&quot;, &quot;path&quot;: &quot;/&quot;, &quot;name&quot;: &quot;session_start_date&quot;}}
+DEBUG    urllib3.connectionpool:connectionpool.py:456 http://localhost:53361 &quot;POST /session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/cookie HTTP/1.1&quot; 200 14
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:380 Remote response: status=200 | data={&quot;value&quot;:null} | headers=HTTPHeaderDict({&#x27;Server&#x27;: &#x27;safaridriver [17613.3.9.1.5]&#x27;, &#x27;Content-Type&#x27;: &#x27;application/json; charset=utf-8&#x27;, &#x27;Date&#x27;: &#x27;Tue, 16 Aug 2022 09:17:47 GMT&#x27;, &#x27;Accept-Ranges&#x27;: &#x27;bytes&#x27;, &#x27;Content-Length&#x27;: &#x27;14&#x27;, &#x27;Cache-Control&#x27;: &#x27;no-cache&#x27;, &#x27;Connection&#x27;: &#x27;keep-alive&#x27;})
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:409 Finished Request
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:358 POST http://localhost:53361/session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/cookie {&quot;cookie&quot;: {&quot;expiry&quot;: 1692176900, &quot;secure&quot;: false, &quot;domain&quot;: &quot;www.olx.pl&quot;, &quot;httpOnly&quot;: false, &quot;value&quot;: &quot;false&quot;, &quot;path&quot;: &quot;/&quot;, &quot;name&quot;: &quot;user_adblock_status&quot;}}
+DEBUG    urllib3.connectionpool:connectionpool.py:456 http://localhost:53361 &quot;POST /session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/cookie HTTP/1.1&quot; 200 14
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:380 Remote response: status=200 | data={&quot;value&quot;:null} | headers=HTTPHeaderDict({&#x27;Server&#x27;: &#x27;safaridriver [17613.3.9.1.5]&#x27;, &#x27;Content-Type&#x27;: &#x27;application/json; charset=utf-8&#x27;, &#x27;Date&#x27;: &#x27;Tue, 16 Aug 2022 09:17:47 GMT&#x27;, &#x27;Accept-Ranges&#x27;: &#x27;bytes&#x27;, &#x27;Content-Length&#x27;: &#x27;14&#x27;, &#x27;Cache-Control&#x27;: &#x27;no-cache&#x27;, &#x27;Connection&#x27;: &#x27;keep-alive&#x27;})
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:409 Finished Request
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:358 POST http://localhost:53361/session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/cookie {&quot;cookie&quot;: {&quot;expiry&quot;: 1692176899, &quot;secure&quot;: false, &quot;domain&quot;: &quot;.olx.pl&quot;, &quot;httpOnly&quot;: false, &quot;value&quot;: &quot;isGpcEnabled=0&amp;datestamp=Tue+Aug+16+2022+11%3A08%3A19+GMT%2B0200+(CEST)&amp;version=6.19.0&amp;isIABGlobal=false&amp;hosts=&amp;genVendors=V9%3A0%2C&amp;consentId=7d798222-d6c9-4e5f-a36d-7a459161a0be&amp;interactionCount=1&amp;landingPath=NotLandingPage&amp;groups=C0001%3A1%2CC0002%3A1%2CC0003%3A1%2CC0004%3A1%2Cgad%3A1%2CSTACK42%3A1&amp;geolocation=%3B&amp;AwaitingReconsent=false&quot;, &quot;path&quot;: &quot;/&quot;, &quot;name&quot;: &quot;OptanonConsent&quot;}}
+DEBUG    urllib3.connectionpool:connectionpool.py:456 http://localhost:53361 &quot;POST /session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/cookie HTTP/1.1&quot; 200 14
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:380 Remote response: status=200 | data={&quot;value&quot;:null} | headers=HTTPHeaderDict({&#x27;Server&#x27;: &#x27;safaridriver [17613.3.9.1.5]&#x27;, &#x27;Content-Type&#x27;: &#x27;application/json; charset=utf-8&#x27;, &#x27;Date&#x27;: &#x27;Tue, 16 Aug 2022 09:17:47 GMT&#x27;, &#x27;Accept-Ranges&#x27;: &#x27;bytes&#x27;, &#x27;Content-Length&#x27;: &#x27;14&#x27;, &#x27;Cache-Control&#x27;: &#x27;no-cache&#x27;, &#x27;Connection&#x27;: &#x27;keep-alive&#x27;})
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:409 Finished Request
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:358 POST http://localhost:53361/session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/cookie {&quot;cookie&quot;: {&quot;expiry&quot;: 1692176899, &quot;secure&quot;: false, &quot;domain&quot;: &quot;.olx.pl&quot;, &quot;httpOnly&quot;: false, &quot;value&quot;: &quot;a2b-000#aut-388#aut-716#buy-2279#buy-2489#buy-2811#dat-2874#do-2963#euonb-114#euonb-48#grw-124#kuna-307#kuna-314#kuna-554#kuna-603#mart-555#mou-1052#oesx-1437#oesx-1643#oesx-645#oesx-867#olxeu-0000#olxeu-29763#psm-235#psm-308#psm-402#psm-457#sd-570#srt-1289#srt-1346#srt-1434#srt-1593#srt-1758#srt-474#srt-475#srt-683#srt-899&quot;, &quot;path&quot;: &quot;/&quot;, &quot;name&quot;: &quot;laquesisff&quot;}}
+DEBUG    urllib3.connectionpool:connectionpool.py:456 http://localhost:53361 &quot;POST /session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/cookie HTTP/1.1&quot; 200 14
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:380 Remote response: status=200 | data={&quot;value&quot;:null} | headers=HTTPHeaderDict({&#x27;Server&#x27;: &#x27;safaridriver [17613.3.9.1.5]&#x27;, &#x27;Content-Type&#x27;: &#x27;application/json; charset=utf-8&#x27;, &#x27;Date&#x27;: &#x27;Tue, 16 Aug 2022 09:17:47 GMT&#x27;, &#x27;Accept-Ranges&#x27;: &#x27;bytes&#x27;, &#x27;Content-Length&#x27;: &#x27;14&#x27;, &#x27;Cache-Control&#x27;: &#x27;no-cache&#x27;, &#x27;Connection&#x27;: &#x27;keep-alive&#x27;})
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:409 Finished Request
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:358 POST http://localhost:53361/session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/cookie {&quot;cookie&quot;: {&quot;expiry&quot;: 1660640959, &quot;secure&quot;: false, &quot;domain&quot;: &quot;.olx.pl&quot;, &quot;httpOnly&quot;: false, &quot;value&quot;: &quot;182a5e93058x2d2fea4a&quot;, &quot;path&quot;: &quot;/&quot;, &quot;name&quot;: &quot;lqonap&quot;}}
+DEBUG    urllib3.connectionpool:connectionpool.py:456 http://localhost:53361 &quot;POST /session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/cookie HTTP/1.1&quot; 200 14
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:380 Remote response: status=200 | data={&quot;value&quot;:null} | headers=HTTPHeaderDict({&#x27;Server&#x27;: &#x27;safaridriver [17613.3.9.1.5]&#x27;, &#x27;Content-Type&#x27;: &#x27;application/json; charset=utf-8&#x27;, &#x27;Date&#x27;: &#x27;Tue, 16 Aug 2022 09:17:47 GMT&#x27;, &#x27;Accept-Ranges&#x27;: &#x27;bytes&#x27;, &#x27;Content-Length&#x27;: &#x27;14&#x27;, &#x27;Cache-Control&#x27;: &#x27;no-cache&#x27;, &#x27;Connection&#x27;: &#x27;keep-alive&#x27;})
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:409 Finished Request
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:358 POST http://localhost:53361/session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/cookie {&quot;cookie&quot;: {&quot;expiry&quot;: 1746954499, &quot;secure&quot;: false, &quot;domain&quot;: &quot;.olx.pl&quot;, &quot;httpOnly&quot;: false, &quot;value&quot;: &quot;private&quot;, &quot;path&quot;: &quot;/&quot;, &quot;name&quot;: &quot;user_business_status&quot;}}
+DEBUG    urllib3.connectionpool:connectionpool.py:456 http://localhost:53361 &quot;POST /session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/cookie HTTP/1.1&quot; 200 14
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:380 Remote response: status=200 | data={&quot;value&quot;:null} | headers=HTTPHeaderDict({&#x27;Server&#x27;: &#x27;safaridriver [17613.3.9.1.5]&#x27;, &#x27;Content-Type&#x27;: &#x27;application/json; charset=utf-8&#x27;, &#x27;Date&#x27;: &#x27;Tue, 16 Aug 2022 09:17:47 GMT&#x27;, &#x27;Accept-Ranges&#x27;: &#x27;bytes&#x27;, &#x27;Content-Length&#x27;: &#x27;14&#x27;, &#x27;Cache-Control&#x27;: &#x27;no-cache&#x27;, &#x27;Connection&#x27;: &#x27;keep-alive&#x27;})
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:409 Finished Request
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:358 POST http://localhost:53361/session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/cookie {&quot;cookie&quot;: {&quot;expiry&quot;: 1746954499, &quot;secure&quot;: false, &quot;domain&quot;: &quot;.olx.pl&quot;, &quot;httpOnly&quot;: false, &quot;value&quot;: &quot;1211616746&quot;, &quot;path&quot;: &quot;/&quot;, &quot;name&quot;: &quot;user_id&quot;}}
+DEBUG    urllib3.connectionpool:connectionpool.py:456 http://localhost:53361 &quot;POST /session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/cookie HTTP/1.1&quot; 200 14
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:380 Remote response: status=200 | data={&quot;value&quot;:null} | headers=HTTPHeaderDict({&#x27;Server&#x27;: &#x27;safaridriver [17613.3.9.1.5]&#x27;, &#x27;Content-Type&#x27;: &#x27;application/json; charset=utf-8&#x27;, &#x27;Date&#x27;: &#x27;Tue, 16 Aug 2022 09:17:47 GMT&#x27;, &#x27;Accept-Ranges&#x27;: &#x27;bytes&#x27;, &#x27;Content-Length&#x27;: &#x27;14&#x27;, &#x27;Cache-Control&#x27;: &#x27;no-cache&#x27;, &#x27;Connection&#x27;: &#x27;keep-alive&#x27;})
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:409 Finished Request
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:358 POST http://localhost:53361/session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/cookie {&quot;cookie&quot;: {&quot;expiry&quot;: 1746954499, &quot;secure&quot;: false, &quot;domain&quot;: &quot;www.olx.pl&quot;, &quot;httpOnly&quot;: false, &quot;value&quot;: &quot;bb2e5e41-3adf-43a5-83e9-9a4d2a10aacf&quot;, &quot;path&quot;: &quot;/&quot;, &quot;name&quot;: &quot;deviceGUID&quot;}}
+DEBUG    urllib3.connectionpool:connectionpool.py:456 http://localhost:53361 &quot;POST /session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/cookie HTTP/1.1&quot; 200 14
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:380 Remote response: status=200 | data={&quot;value&quot;:null} | headers=HTTPHeaderDict({&#x27;Server&#x27;: &#x27;safaridriver [17613.3.9.1.5]&#x27;, &#x27;Content-Type&#x27;: &#x27;application/json; charset=utf-8&#x27;, &#x27;Date&#x27;: &#x27;Tue, 16 Aug 2022 09:17:47 GMT&#x27;, &#x27;Accept-Ranges&#x27;: &#x27;bytes&#x27;, &#x27;Content-Length&#x27;: &#x27;14&#x27;, &#x27;Cache-Control&#x27;: &#x27;no-cache&#x27;, &#x27;Connection&#x27;: &#x27;keep-alive&#x27;})
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:409 Finished Request
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:358 POST http://localhost:53361/session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/cookie {&quot;cookie&quot;: {&quot;expiry&quot;: 1661850498, &quot;secure&quot;: true, &quot;domain&quot;: &quot;.olx.pl&quot;, &quot;httpOnly&quot;: true, &quot;value&quot;: &quot;3615b0ugug7ml43i9gjcjv46pr&quot;, &quot;path&quot;: &quot;/&quot;, &quot;name&quot;: &quot;PHPSESSID&quot;}}
+DEBUG    urllib3.connectionpool:connectionpool.py:456 http://localhost:53361 &quot;POST /session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/cookie HTTP/1.1&quot; 200 14
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:380 Remote response: status=200 | data={&quot;value&quot;:null} | headers=HTTPHeaderDict({&#x27;Server&#x27;: &#x27;safaridriver [17613.3.9.1.5]&#x27;, &#x27;Content-Type&#x27;: &#x27;application/json; charset=utf-8&#x27;, &#x27;Date&#x27;: &#x27;Tue, 16 Aug 2022 09:17:47 GMT&#x27;, &#x27;Accept-Ranges&#x27;: &#x27;bytes&#x27;, &#x27;Content-Length&#x27;: &#x27;14&#x27;, &#x27;Cache-Control&#x27;: &#x27;no-cache&#x27;, &#x27;Connection&#x27;: &#x27;keep-alive&#x27;})
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:409 Finished Request
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:358 POST http://localhost:53361/session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/cookie {&quot;cookie&quot;: {&quot;expiry&quot;: 1660727298, &quot;secure&quot;: false, &quot;domain&quot;: &quot;.olx.pl&quot;, &quot;httpOnly&quot;: false, &quot;value&quot;: &quot;ec0f080f2248df12d7cae9f3dc0e57666186fbec&quot;, &quot;path&quot;: &quot;/&quot;, &quot;name&quot;: &quot;access_token&quot;}}
+DEBUG    urllib3.connectionpool:connectionpool.py:456 http://localhost:53361 &quot;POST /session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/cookie HTTP/1.1&quot; 200 14
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:380 Remote response: status=200 | data={&quot;value&quot;:null} | headers=HTTPHeaderDict({&#x27;Server&#x27;: &#x27;safaridriver [17613.3.9.1.5]&#x27;, &#x27;Content-Type&#x27;: &#x27;application/json; charset=utf-8&#x27;, &#x27;Date&#x27;: &#x27;Tue, 16 Aug 2022 09:17:47 GMT&#x27;, &#x27;Accept-Ranges&#x27;: &#x27;bytes&#x27;, &#x27;Content-Length&#x27;: &#x27;14&#x27;, &#x27;Cache-Control&#x27;: &#x27;no-cache&#x27;, &#x27;Connection&#x27;: &#x27;keep-alive&#x27;})
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:409 Finished Request
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:358 POST http://localhost:53361/session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/cookie {&quot;cookie&quot;: {&quot;expiry&quot;: 1661850498, &quot;secure&quot;: false, &quot;domain&quot;: &quot;.olx.pl&quot;, &quot;httpOnly&quot;: false, &quot;value&quot;: &quot;4c883bb1adaeb5e713b858db7b25bdd579d097ea&quot;, &quot;path&quot;: &quot;/&quot;, &quot;name&quot;: &quot;refresh_token&quot;}}
+DEBUG    urllib3.connectionpool:connectionpool.py:456 http://localhost:53361 &quot;POST /session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/cookie HTTP/1.1&quot; 200 14
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:380 Remote response: status=200 | data={&quot;value&quot;:null} | headers=HTTPHeaderDict({&#x27;Server&#x27;: &#x27;safaridriver [17613.3.9.1.5]&#x27;, &#x27;Content-Type&#x27;: &#x27;application/json; charset=utf-8&#x27;, &#x27;Date&#x27;: &#x27;Tue, 16 Aug 2022 09:17:47 GMT&#x27;, &#x27;Accept-Ranges&#x27;: &#x27;bytes&#x27;, &#x27;Content-Length&#x27;: &#x27;14&#x27;, &#x27;Cache-Control&#x27;: &#x27;no-cache&#x27;, &#x27;Connection&#x27;: &#x27;keep-alive&#x27;})
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:409 Finished Request
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:358 POST http://localhost:53361/session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/cookie {&quot;cookie&quot;: {&quot;expiry&quot;: 3636900996, &quot;secure&quot;: false, &quot;domain&quot;: &quot;.olx.pl&quot;, &quot;httpOnly&quot;: false, &quot;value&quot;: &quot;83ns255m58ovu8%3A1660640898193&quot;, &quot;path&quot;: &quot;/&quot;, &quot;name&quot;: &quot;x-device-id&quot;}}
+DEBUG    urllib3.connectionpool:connectionpool.py:456 http://localhost:53361 &quot;POST /session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/cookie HTTP/1.1&quot; 200 14
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:380 Remote response: status=200 | data={&quot;value&quot;:null} | headers=HTTPHeaderDict({&#x27;Server&#x27;: &#x27;safaridriver [17613.3.9.1.5]&#x27;, &#x27;Content-Type&#x27;: &#x27;application/json; charset=utf-8&#x27;, &#x27;Date&#x27;: &#x27;Tue, 16 Aug 2022 09:17:47 GMT&#x27;, &#x27;Accept-Ranges&#x27;: &#x27;bytes&#x27;, &#x27;Content-Length&#x27;: &#x27;14&#x27;, &#x27;Cache-Control&#x27;: &#x27;no-cache&#x27;, &#x27;Connection&#x27;: &#x27;keep-alive&#x27;})
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:409 Finished Request
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:358 POST http://localhost:53361/session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/cookie {&quot;cookie&quot;: {&quot;expiry&quot;: 1660727296, &quot;secure&quot;: false, &quot;domain&quot;: &quot;.olx.pl&quot;, &quot;httpOnly&quot;: false, &quot;value&quot;: &quot;0&quot;, &quot;path&quot;: &quot;/&quot;, &quot;name&quot;: &quot;newrelicInited&quot;}}
+DEBUG    urllib3.connectionpool:connectionpool.py:456 http://localhost:53361 &quot;POST /session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/cookie HTTP/1.1&quot; 200 14
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:380 Remote response: status=200 | data={&quot;value&quot;:null} | headers=HTTPHeaderDict({&#x27;Server&#x27;: &#x27;safaridriver [17613.3.9.1.5]&#x27;, &#x27;Content-Type&#x27;: &#x27;application/json; charset=utf-8&#x27;, &#x27;Date&#x27;: &#x27;Tue, 16 Aug 2022 09:17:47 GMT&#x27;, &#x27;Accept-Ranges&#x27;: &#x27;bytes&#x27;, &#x27;Content-Length&#x27;: &#x27;14&#x27;, &#x27;Cache-Control&#x27;: &#x27;no-cache&#x27;, &#x27;Connection&#x27;: &#x27;keep-alive&#x27;})
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:409 Finished Request
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:358 POST http://localhost:53361/session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/cookie {&quot;cookie&quot;: {&quot;expiry&quot;: 1692176895, &quot;secure&quot;: false, &quot;domain&quot;: &quot;.olx.pl&quot;, &quot;httpOnly&quot;: false, &quot;value&quot;: &quot;1~89.2008.2072.2322.2465.2501.2999.3028.3225.3226.3231.3232.3234.3235.3236.3237.3238.3240.3241.3244.3245.3250.3251.3253.3257.3260.3268.3270.3272.3281.3288.3290.3292.3293.3295.3296.3300.3306.3307.3308.3314.3315.3316&quot;, &quot;path&quot;: &quot;/&quot;, &quot;name&quot;: &quot;OTAdditionalConsentString&quot;}}
+DEBUG    urllib3.connectionpool:connectionpool.py:456 http://localhost:53361 &quot;POST /session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/cookie HTTP/1.1&quot; 200 14
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:380 Remote response: status=200 | data={&quot;value&quot;:null} | headers=HTTPHeaderDict({&#x27;Server&#x27;: &#x27;safaridriver [17613.3.9.1.5]&#x27;, &#x27;Content-Type&#x27;: &#x27;application/json; charset=utf-8&#x27;, &#x27;Date&#x27;: &#x27;Tue, 16 Aug 2022 09:17:47 GMT&#x27;, &#x27;Accept-Ranges&#x27;: &#x27;bytes&#x27;, &#x27;Content-Length&#x27;: &#x27;14&#x27;, &#x27;Cache-Control&#x27;: &#x27;no-cache&#x27;, &#x27;Connection&#x27;: &#x27;keep-alive&#x27;})
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:409 Finished Request
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:358 POST http://localhost:53361/session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/cookie {&quot;cookie&quot;: {&quot;expiry&quot;: 1692176895, &quot;secure&quot;: false, &quot;domain&quot;: &quot;.olx.pl&quot;, &quot;httpOnly&quot;: false, &quot;value&quot;: &quot;2022-08-16T09:08:15.562Z&quot;, &quot;path&quot;: &quot;/&quot;, &quot;name&quot;: &quot;OptanonAlertBoxClosed&quot;}}
+DEBUG    urllib3.connectionpool:connectionpool.py:456 http://localhost:53361 &quot;POST /session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/cookie HTTP/1.1&quot; 200 14
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:380 Remote response: status=200 | data={&quot;value&quot;:null} | headers=HTTPHeaderDict({&#x27;Server&#x27;: &#x27;safaridriver [17613.3.9.1.5]&#x27;, &#x27;Content-Type&#x27;: &#x27;application/json; charset=utf-8&#x27;, &#x27;Date&#x27;: &#x27;Tue, 16 Aug 2022 09:17:47 GMT&#x27;, &#x27;Accept-Ranges&#x27;: &#x27;bytes&#x27;, &#x27;Content-Length&#x27;: &#x27;14&#x27;, &#x27;Cache-Control&#x27;: &#x27;no-cache&#x27;, &#x27;Connection&#x27;: &#x27;keep-alive&#x27;})
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:409 Finished Request
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:358 POST http://localhost:53361/session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/cookie {&quot;cookie&quot;: {&quot;expiry&quot;: 1692176895, &quot;secure&quot;: false, &quot;domain&quot;: &quot;.olx.pl&quot;, &quot;httpOnly&quot;: false, &quot;value&quot;: &quot;CPd0bD3Pd0bD3AcABBENCcCsAP_AAH_AAAYgI8Nf_X__b2_j-_5_f_t0eY1P9_7__-0zjhfdl-8N3f_X_L8X52M7vF36pq4KuR4Eu3LBIQdlHOHcTUmw6okVrzPsbk2cr7NKJ7PEmnMbOydYGH9_n1_zuZKY7_____7z_v-v______f_7-3f3__p_3_-__e_V_99zfn9_____9vP___9v-_9__________3_7BHYAkw1biALsSxwJtowigRAjCsJDqBQAUUAwtEFhA6uCnZXAT6whYAIBQBGBECHEFGDAIABAIAkIiAkCPBAIgCIBAACABUAhAARsAgsALAwCAAUA0LFGKAIQJCDIgIjlMCAiRIKCeysQSg70NMIQ6ywAoNH_FQgIlACFYGQkLByHBEgJeLJAsxRvkAIwQoBRKgAAAAA.f_gAD_gAAAAA&quot;, &quot;path&quot;: &quot;/&quot;, &quot;name&quot;: &quot;eupubconsent-v2&quot;}}
+DEBUG    urllib3.connectionpool:connectionpool.py:456 http://localhost:53361 &quot;POST /session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/cookie HTTP/1.1&quot; 200 14
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:380 Remote response: status=200 | data={&quot;value&quot;:null} | headers=HTTPHeaderDict({&#x27;Server&#x27;: &#x27;safaridriver [17613.3.9.1.5]&#x27;, &#x27;Content-Type&#x27;: &#x27;application/json; charset=utf-8&#x27;, &#x27;Date&#x27;: &#x27;Tue, 16 Aug 2022 09:17:47 GMT&#x27;, &#x27;Accept-Ranges&#x27;: &#x27;bytes&#x27;, &#x27;Content-Length&#x27;: &#x27;14&#x27;, &#x27;Cache-Control&#x27;: &#x27;no-cache&#x27;, &#x27;Connection&#x27;: &#x27;keep-alive&#x27;})
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:409 Finished Request
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:358 POST http://localhost:53361/session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/cookie {&quot;cookie&quot;: {&quot;expiry&quot;: 253402257600, &quot;secure&quot;: false, &quot;domain&quot;: &quot;.www.olx.pl&quot;, &quot;httpOnly&quot;: false, &quot;value&quot;: &quot;google&quot;, &quot;path&quot;: &quot;/&quot;, &quot;name&quot;: &quot;G_ENABLED_IDPS&quot;}}
+DEBUG    urllib3.connectionpool:connectionpool.py:456 http://localhost:53361 &quot;POST /session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/cookie HTTP/1.1&quot; 200 14
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:380 Remote response: status=200 | data={&quot;value&quot;:null} | headers=HTTPHeaderDict({&#x27;Server&#x27;: &#x27;safaridriver [17613.3.9.1.5]&#x27;, &#x27;Content-Type&#x27;: &#x27;application/json; charset=utf-8&#x27;, &#x27;Date&#x27;: &#x27;Tue, 16 Aug 2022 09:17:47 GMT&#x27;, &#x27;Accept-Ranges&#x27;: &#x27;bytes&#x27;, &#x27;Content-Length&#x27;: &#x27;14&#x27;, &#x27;Cache-Control&#x27;: &#x27;no-cache&#x27;, &#x27;Connection&#x27;: &#x27;keep-alive&#x27;})
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:409 Finished Request
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:358 POST http://localhost:53361/session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/cookie {&quot;cookie&quot;: {&quot;path&quot;: &quot;/&quot;, &quot;value&quot;: &quot;MTI1NzY4MzI5MTs4OzA7MDswOzE7MDswOzA7MDswOzE7MTsxOzE7MTsxOzE7MTsxOzE7MTsxOzE7MTswOzE7MTsxOzE7MDswOzA7MDswOzA7MTsxOzE7MTsxOzA7MTswOzA7MTsxOzE7MDswOzA7MDswOzA7MDswOzE7MDswOzA7MDsxOzE7MDsxOzE7MDsxOzE7MTsxOzA7MTswOzE3MDc0ODkwMTA7MTswOzA7MjswOzI7MTsyNjQ2NDQ1NTU7OTgzODQyNzYwOzE7MTsxOzE7MTsxOzE7MTsxOzE7MDsxOzE7MTsxOzE7MTswOzI7MDsyODgxMjgyNjY5OzM0NjkzMDY1NTE7Mzg2ODk2MzgxMjsxNTA2Nzk2MTQzOzM5NTU0NDg2OTM7MTQ0MDs5MDA7MjQ7MjQ7MTIwOzYwOzEyMDs2MDsxMjA7NjA7MTIwOzYwOzEyMDs2MDsxMjA7NjA7MTIwOzYwOzEyMDs2MDsxMjA7NjA7MTIwOzYwOzA7MDsw&quot;, &quot;httpOnly&quot;: false, &quot;name&quot;: &quot;fingerprint&quot;, &quot;secure&quot;: false, &quot;domain&quot;: &quot;.olx.pl&quot;}}
+DEBUG    urllib3.connectionpool:connectionpool.py:456 http://localhost:53361 &quot;POST /session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/cookie HTTP/1.1&quot; 200 14
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:380 Remote response: status=200 | data={&quot;value&quot;:null} | headers=HTTPHeaderDict({&#x27;Server&#x27;: &#x27;safaridriver [17613.3.9.1.5]&#x27;, &#x27;Content-Type&#x27;: &#x27;application/json; charset=utf-8&#x27;, &#x27;Date&#x27;: &#x27;Tue, 16 Aug 2022 09:17:47 GMT&#x27;, &#x27;Accept-Ranges&#x27;: &#x27;bytes&#x27;, &#x27;Content-Length&#x27;: &#x27;14&#x27;, &#x27;Cache-Control&#x27;: &#x27;no-cache&#x27;, &#x27;Connection&#x27;: &#x27;keep-alive&#x27;})
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:409 Finished Request
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:358 POST http://localhost:53361/session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/cookie {&quot;cookie&quot;: {&quot;expiry&quot;: 1692176893, &quot;secure&quot;: false, &quot;domain&quot;: &quot;.olx.pl&quot;, &quot;httpOnly&quot;: false, &quot;value&quot;: &quot;1660640893&quot;, &quot;path&quot;: &quot;/&quot;, &quot;name&quot;: &quot;lister_lifecycle&quot;}}
+DEBUG    urllib3.connectionpool:connectionpool.py:456 http://localhost:53361 &quot;POST /session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/cookie HTTP/1.1&quot; 200 14
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:380 Remote response: status=200 | data={&quot;value&quot;:null} | headers=HTTPHeaderDict({&#x27;Server&#x27;: &#x27;safaridriver [17613.3.9.1.5]&#x27;, &#x27;Content-Type&#x27;: &#x27;application/json; charset=utf-8&#x27;, &#x27;Date&#x27;: &#x27;Tue, 16 Aug 2022 09:17:47 GMT&#x27;, &#x27;Accept-Ranges&#x27;: &#x27;bytes&#x27;, &#x27;Content-Length&#x27;: &#x27;14&#x27;, &#x27;Cache-Control&#x27;: &#x27;no-cache&#x27;, &#x27;Connection&#x27;: &#x27;keep-alive&#x27;})
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:409 Finished Request
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:358 POST http://localhost:53361/session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/cookie {&quot;cookie&quot;: {&quot;path&quot;: &quot;/&quot;, &quot;value&quot;: &quot;desktop&quot;, &quot;httpOnly&quot;: false, &quot;name&quot;: &quot;mobile_default&quot;, &quot;secure&quot;: true, &quot;domain&quot;: &quot;.olx.pl&quot;}}
+DEBUG    urllib3.connectionpool:connectionpool.py:456 http://localhost:53361 &quot;POST /session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/cookie HTTP/1.1&quot; 200 14
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:380 Remote response: status=200 | data={&quot;value&quot;:null} | headers=HTTPHeaderDict({&#x27;Server&#x27;: &#x27;safaridriver [17613.3.9.1.5]&#x27;, &#x27;Content-Type&#x27;: &#x27;application/json; charset=utf-8&#x27;, &#x27;Date&#x27;: &#x27;Tue, 16 Aug 2022 09:17:47 GMT&#x27;, &#x27;Accept-Ranges&#x27;: &#x27;bytes&#x27;, &#x27;Content-Length&#x27;: &#x27;14&#x27;, &#x27;Cache-Control&#x27;: &#x27;no-cache&#x27;, &#x27;Connection&#x27;: &#x27;keep-alive&#x27;})
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:409 Finished Request
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:358 POST http://localhost:53361/session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/url {&quot;url&quot;: &quot;https://www.olx.pl/d/nowe-ogloszenie/&quot;}
+DEBUG    urllib3.connectionpool:connectionpool.py:456 http://localhost:53361 &quot;POST /session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/url HTTP/1.1&quot; 200 14
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:380 Remote response: status=200 | data={&quot;value&quot;:null} | headers=HTTPHeaderDict({&#x27;Server&#x27;: &#x27;safaridriver [17613.3.9.1.5]&#x27;, &#x27;Content-Type&#x27;: &#x27;application/json; charset=utf-8&#x27;, &#x27;Date&#x27;: &#x27;Tue, 16 Aug 2022 09:17:51 GMT&#x27;, &#x27;Accept-Ranges&#x27;: &#x27;bytes&#x27;, &#x27;Content-Length&#x27;: &#x27;14&#x27;, &#x27;Cache-Control&#x27;: &#x27;no-cache&#x27;, &#x27;Connection&#x27;: &#x27;keep-alive&#x27;})
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:409 Finished Request<br/> -------------------------------Captured log call-------------------------------- <br/>DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:358 POST http://localhost:53361/session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/element {&quot;using&quot;: &quot;xpath&quot;, &quot;value&quot;: &quot;//textarea[@data-cy=\&quot;posting-title\&quot;]&quot;}
+DEBUG    urllib3.connectionpool:connectionpool.py:456 http://localhost:53361 &quot;POST /session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/element HTTP/1.1&quot; 404 66
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:380 Remote response: status=404 | data={&quot;value&quot;:{&quot;error&quot;:&quot;no such element&quot;,&quot;message&quot;:&quot;&quot;,&quot;stacktrace&quot;:&quot;&quot;}} | headers=HTTPHeaderDict({&#x27;Server&#x27;: &#x27;safaridriver [17613.3.9.1.5]&#x27;, &#x27;Content-Type&#x27;: &#x27;application/json; charset=utf-8&#x27;, &#x27;Date&#x27;: &#x27;Tue, 16 Aug 2022 09:17:51 GMT&#x27;, &#x27;Accept-Ranges&#x27;: &#x27;bytes&#x27;, &#x27;Content-Length&#x27;: &#x27;66&#x27;, &#x27;Cache-Control&#x27;: &#x27;no-cache&#x27;, &#x27;Connection&#x27;: &#x27;keep-alive&#x27;})
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:409 Finished Request
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:358 POST http://localhost:53361/session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/element {&quot;using&quot;: &quot;xpath&quot;, &quot;value&quot;: &quot;//textarea[@data-cy=\&quot;posting-title\&quot;]&quot;}
+DEBUG    urllib3.connectionpool:connectionpool.py:456 http://localhost:53361 &quot;POST /session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/element HTTP/1.1&quot; 404 66
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:380 Remote response: status=404 | data={&quot;value&quot;:{&quot;error&quot;:&quot;no such element&quot;,&quot;message&quot;:&quot;&quot;,&quot;stacktrace&quot;:&quot;&quot;}} | headers=HTTPHeaderDict({&#x27;Server&#x27;: &#x27;safaridriver [17613.3.9.1.5]&#x27;, &#x27;Content-Type&#x27;: &#x27;application/json; charset=utf-8&#x27;, &#x27;Date&#x27;: &#x27;Tue, 16 Aug 2022 09:17:51 GMT&#x27;, &#x27;Accept-Ranges&#x27;: &#x27;bytes&#x27;, &#x27;Content-Length&#x27;: &#x27;66&#x27;, &#x27;Cache-Control&#x27;: &#x27;no-cache&#x27;, &#x27;Connection&#x27;: &#x27;keep-alive&#x27;})
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:409 Finished Request
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:358 POST http://localhost:53361/session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/element {&quot;using&quot;: &quot;xpath&quot;, &quot;value&quot;: &quot;//textarea[@data-cy=\&quot;posting-title\&quot;]&quot;}
+DEBUG    urllib3.connectionpool:connectionpool.py:456 http://localhost:53361 &quot;POST /session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/element HTTP/1.1&quot; 200 93
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:380 Remote response: status=200 | data={&quot;value&quot;:{&quot;element-6066-11e4-a52e-4f735466cecf&quot;:&quot;node-7FADC437-833A-44AE-80D5-83A97A640F4B&quot;}} | headers=HTTPHeaderDict({&#x27;Server&#x27;: &#x27;safaridriver [17613.3.9.1.5]&#x27;, &#x27;Content-Type&#x27;: &#x27;application/json; charset=utf-8&#x27;, &#x27;Date&#x27;: &#x27;Tue, 16 Aug 2022 09:17:52 GMT&#x27;, &#x27;Accept-Ranges&#x27;: &#x27;bytes&#x27;, &#x27;Content-Length&#x27;: &#x27;93&#x27;, &#x27;Cache-Control&#x27;: &#x27;no-cache&#x27;, &#x27;Connection&#x27;: &#x27;keep-alive&#x27;})
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:409 Finished Request
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:358 POST http://localhost:53361/session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/element/node-7FADC437-833A-44AE-80D5-83A97A640F4B/value {&quot;text&quot;: &quot;Smartwach Samsung Galaxy 3 - Nowy, gwarancja&quot;, &quot;value&quot;: [&quot;S&quot;, &quot;m&quot;, &quot;a&quot;, &quot;r&quot;, &quot;t&quot;, &quot;w&quot;, &quot;a&quot;, &quot;c&quot;, &quot;h&quot;, &quot; &quot;, &quot;S&quot;, &quot;a&quot;, &quot;m&quot;, &quot;s&quot;, &quot;u&quot;, &quot;n&quot;, &quot;g&quot;, &quot; &quot;, &quot;G&quot;, &quot;a&quot;, &quot;l&quot;, &quot;a&quot;, &quot;x&quot;, &quot;y&quot;, &quot; &quot;, &quot;3&quot;, &quot; &quot;, &quot;-&quot;, &quot; &quot;, &quot;N&quot;, &quot;o&quot;, &quot;w&quot;, &quot;y&quot;, &quot;,&quot;, &quot; &quot;, &quot;g&quot;, &quot;w&quot;, &quot;a&quot;, &quot;r&quot;, &quot;a&quot;, &quot;n&quot;, &quot;c&quot;, &quot;j&quot;, &quot;a&quot;], &quot;id&quot;: &quot;node-7FADC437-833A-44AE-80D5-83A97A640F4B&quot;}
+DEBUG    urllib3.connectionpool:connectionpool.py:456 http://localhost:53361 &quot;POST /session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/element/node-7FADC437-833A-44AE-80D5-83A97A640F4B/value HTTP/1.1&quot; 200 14
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:380 Remote response: status=200 | data={&quot;value&quot;:null} | headers=HTTPHeaderDict({&#x27;Server&#x27;: &#x27;safaridriver [17613.3.9.1.5]&#x27;, &#x27;Content-Type&#x27;: &#x27;application/json; charset=utf-8&#x27;, &#x27;Date&#x27;: &#x27;Tue, 16 Aug 2022 09:17:52 GMT&#x27;, &#x27;Accept-Ranges&#x27;: &#x27;bytes&#x27;, &#x27;Content-Length&#x27;: &#x27;14&#x27;, &#x27;Cache-Control&#x27;: &#x27;no-cache&#x27;, &#x27;Connection&#x27;: &#x27;keep-alive&#x27;})
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:409 Finished Request
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:358 POST http://localhost:53361/session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/element {&quot;using&quot;: &quot;xpath&quot;, &quot;value&quot;: &quot;//div[@data-cy=\&quot;posting-select-category\&quot;]&quot;}
+DEBUG    urllib3.connectionpool:connectionpool.py:456 http://localhost:53361 &quot;POST /session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/element HTTP/1.1&quot; 200 93
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:380 Remote response: status=200 | data={&quot;value&quot;:{&quot;element-6066-11e4-a52e-4f735466cecf&quot;:&quot;node-86CE0E69-A6F8-43C7-886E-F123A13A2246&quot;}} | headers=HTTPHeaderDict({&#x27;Server&#x27;: &#x27;safaridriver [17613.3.9.1.5]&#x27;, &#x27;Content-Type&#x27;: &#x27;application/json; charset=utf-8&#x27;, &#x27;Date&#x27;: &#x27;Tue, 16 Aug 2022 09:17:52 GMT&#x27;, &#x27;Accept-Ranges&#x27;: &#x27;bytes&#x27;, &#x27;Content-Length&#x27;: &#x27;93&#x27;, &#x27;Cache-Control&#x27;: &#x27;no-cache&#x27;, &#x27;Connection&#x27;: &#x27;keep-alive&#x27;})
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:409 Finished Request
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:358 POST http://localhost:53361/session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/element/node-86CE0E69-A6F8-43C7-886E-F123A13A2246/click {&quot;id&quot;: &quot;node-86CE0E69-A6F8-43C7-886E-F123A13A2246&quot;}
+DEBUG    urllib3.connectionpool:connectionpool.py:456 http://localhost:53361 &quot;POST /session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/element/node-86CE0E69-A6F8-43C7-886E-F123A13A2246/click HTTP/1.1&quot; 200 14
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:380 Remote response: status=200 | data={&quot;value&quot;:null} | headers=HTTPHeaderDict({&#x27;Server&#x27;: &#x27;safaridriver [17613.3.9.1.5]&#x27;, &#x27;Content-Type&#x27;: &#x27;application/json; charset=utf-8&#x27;, &#x27;Date&#x27;: &#x27;Tue, 16 Aug 2022 09:17:52 GMT&#x27;, &#x27;Accept-Ranges&#x27;: &#x27;bytes&#x27;, &#x27;Content-Length&#x27;: &#x27;14&#x27;, &#x27;Cache-Control&#x27;: &#x27;no-cache&#x27;, &#x27;Connection&#x27;: &#x27;keep-alive&#x27;})
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:409 Finished Request
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:358 POST http://localhost:53361/session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/element {&quot;using&quot;: &quot;xpath&quot;, &quot;value&quot;: &quot;//button[@data-cy=\&quot;posting-suggested-categories-item\&quot;]&quot;}
+DEBUG    urllib3.connectionpool:connectionpool.py:456 http://localhost:53361 &quot;POST /session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/element HTTP/1.1&quot; 404 66
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:380 Remote response: status=404 | data={&quot;value&quot;:{&quot;error&quot;:&quot;no such element&quot;,&quot;message&quot;:&quot;&quot;,&quot;stacktrace&quot;:&quot;&quot;}} | headers=HTTPHeaderDict({&#x27;Server&#x27;: &#x27;safaridriver [17613.3.9.1.5]&#x27;, &#x27;Content-Type&#x27;: &#x27;application/json; charset=utf-8&#x27;, &#x27;Date&#x27;: &#x27;Tue, 16 Aug 2022 09:17:52 GMT&#x27;, &#x27;Accept-Ranges&#x27;: &#x27;bytes&#x27;, &#x27;Content-Length&#x27;: &#x27;66&#x27;, &#x27;Cache-Control&#x27;: &#x27;no-cache&#x27;, &#x27;Connection&#x27;: &#x27;keep-alive&#x27;})
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:409 Finished Request
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:358 POST http://localhost:53361/session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/element {&quot;using&quot;: &quot;xpath&quot;, &quot;value&quot;: &quot;//button[@data-cy=\&quot;posting-suggested-categories-item\&quot;]&quot;}
+DEBUG    urllib3.connectionpool:connectionpool.py:456 http://localhost:53361 &quot;POST /session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/element HTTP/1.1&quot; 404 66
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:380 Remote response: status=404 | data={&quot;value&quot;:{&quot;error&quot;:&quot;no such element&quot;,&quot;message&quot;:&quot;&quot;,&quot;stacktrace&quot;:&quot;&quot;}} | headers=HTTPHeaderDict({&#x27;Server&#x27;: &#x27;safaridriver [17613.3.9.1.5]&#x27;, &#x27;Content-Type&#x27;: &#x27;application/json; charset=utf-8&#x27;, &#x27;Date&#x27;: &#x27;Tue, 16 Aug 2022 09:17:53 GMT&#x27;, &#x27;Accept-Ranges&#x27;: &#x27;bytes&#x27;, &#x27;Content-Length&#x27;: &#x27;66&#x27;, &#x27;Cache-Control&#x27;: &#x27;no-cache&#x27;, &#x27;Connection&#x27;: &#x27;keep-alive&#x27;})
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:409 Finished Request
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:358 POST http://localhost:53361/session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/element {&quot;using&quot;: &quot;xpath&quot;, &quot;value&quot;: &quot;//button[@data-cy=\&quot;posting-suggested-categories-item\&quot;]&quot;}
+DEBUG    urllib3.connectionpool:connectionpool.py:456 http://localhost:53361 &quot;POST /session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/element HTTP/1.1&quot; 200 93
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:380 Remote response: status=200 | data={&quot;value&quot;:{&quot;element-6066-11e4-a52e-4f735466cecf&quot;:&quot;node-1F1AB917-F8C6-4FE8-AFD8-EE90D1CF8F78&quot;}} | headers=HTTPHeaderDict({&#x27;Server&#x27;: &#x27;safaridriver [17613.3.9.1.5]&#x27;, &#x27;Content-Type&#x27;: &#x27;application/json; charset=utf-8&#x27;, &#x27;Date&#x27;: &#x27;Tue, 16 Aug 2022 09:17:54 GMT&#x27;, &#x27;Accept-Ranges&#x27;: &#x27;bytes&#x27;, &#x27;Content-Length&#x27;: &#x27;93&#x27;, &#x27;Cache-Control&#x27;: &#x27;no-cache&#x27;, &#x27;Connection&#x27;: &#x27;keep-alive&#x27;})
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:409 Finished Request
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:358 POST http://localhost:53361/session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/element/node-1F1AB917-F8C6-4FE8-AFD8-EE90D1CF8F78/click {&quot;id&quot;: &quot;node-1F1AB917-F8C6-4FE8-AFD8-EE90D1CF8F78&quot;}
+DEBUG    urllib3.connectionpool:connectionpool.py:456 http://localhost:53361 &quot;POST /session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/element/node-1F1AB917-F8C6-4FE8-AFD8-EE90D1CF8F78/click HTTP/1.1&quot; 200 14
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:380 Remote response: status=200 | data={&quot;value&quot;:null} | headers=HTTPHeaderDict({&#x27;Server&#x27;: &#x27;safaridriver [17613.3.9.1.5]&#x27;, &#x27;Content-Type&#x27;: &#x27;application/json; charset=utf-8&#x27;, &#x27;Date&#x27;: &#x27;Tue, 16 Aug 2022 09:17:54 GMT&#x27;, &#x27;Accept-Ranges&#x27;: &#x27;bytes&#x27;, &#x27;Content-Length&#x27;: &#x27;14&#x27;, &#x27;Cache-Control&#x27;: &#x27;no-cache&#x27;, &#x27;Connection&#x27;: &#x27;keep-alive&#x27;})
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:409 Finished Request
+INFO     pages._base:_base.py:39 Scrolling page to Y: 850
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:358 POST http://localhost:53361/session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/execute/sync {&quot;script&quot;: &quot;window.scrollTo(0, 850)&quot;, &quot;args&quot;: []}
+DEBUG    urllib3.connectionpool:connectionpool.py:456 http://localhost:53361 &quot;POST /session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/execute/sync HTTP/1.1&quot; 200 14
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:380 Remote response: status=200 | data={&quot;value&quot;:null} | headers=HTTPHeaderDict({&#x27;Server&#x27;: &#x27;safaridriver [17613.3.9.1.5]&#x27;, &#x27;Content-Type&#x27;: &#x27;application/json; charset=utf-8&#x27;, &#x27;Date&#x27;: &#x27;Tue, 16 Aug 2022 09:17:54 GMT&#x27;, &#x27;Accept-Ranges&#x27;: &#x27;bytes&#x27;, &#x27;Content-Length&#x27;: &#x27;14&#x27;, &#x27;Cache-Control&#x27;: &#x27;no-cache&#x27;, &#x27;Connection&#x27;: &#x27;keep-alive&#x27;})
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:409 Finished Request
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:358 POST http://localhost:53361/session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/element {&quot;using&quot;: &quot;xpath&quot;, &quot;value&quot;: &quot;//textarea[@name=\&quot;description\&quot;]&quot;}
+DEBUG    urllib3.connectionpool:connectionpool.py:456 http://localhost:53361 &quot;POST /session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/element HTTP/1.1&quot; 200 93
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:380 Remote response: status=200 | data={&quot;value&quot;:{&quot;element-6066-11e4-a52e-4f735466cecf&quot;:&quot;node-9F59FE95-7758-4DF9-86F1-8A20806E04BD&quot;}} | headers=HTTPHeaderDict({&#x27;Server&#x27;: &#x27;safaridriver [17613.3.9.1.5]&#x27;, &#x27;Content-Type&#x27;: &#x27;application/json; charset=utf-8&#x27;, &#x27;Date&#x27;: &#x27;Tue, 16 Aug 2022 09:17:54 GMT&#x27;, &#x27;Accept-Ranges&#x27;: &#x27;bytes&#x27;, &#x27;Content-Length&#x27;: &#x27;93&#x27;, &#x27;Cache-Control&#x27;: &#x27;no-cache&#x27;, &#x27;Connection&#x27;: &#x27;keep-alive&#x27;})
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:409 Finished Request
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:358 POST http://localhost:53361/session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/element/node-9F59FE95-7758-4DF9-86F1-8A20806E04BD/value {&quot;text&quot;: &quot;Lorem ipsum dolor sit amet, consectetur adipiscing elit.Mauris gravida quam eget ligula erat curae.&quot;, &quot;value&quot;: [&quot;L&quot;, &quot;o&quot;, &quot;r&quot;, &quot;e&quot;, &quot;m&quot;, &quot; &quot;, &quot;i&quot;, &quot;p&quot;, &quot;s&quot;, &quot;u&quot;, &quot;m&quot;, &quot; &quot;, &quot;d&quot;, &quot;o&quot;, &quot;l&quot;, &quot;o&quot;, &quot;r&quot;, &quot; &quot;, &quot;s&quot;, &quot;i&quot;, &quot;t&quot;, &quot; &quot;, &quot;a&quot;, &quot;m&quot;, &quot;e&quot;, &quot;t&quot;, &quot;,&quot;, &quot; &quot;, &quot;c&quot;, &quot;o&quot;, &quot;n&quot;, &quot;s&quot;, &quot;e&quot;, &quot;c&quot;, &quot;t&quot;, &quot;e&quot;, &quot;t&quot;, &quot;u&quot;, &quot;r&quot;, &quot; &quot;, &quot;a&quot;, &quot;d&quot;, &quot;i&quot;, &quot;p&quot;, &quot;i&quot;, &quot;s&quot;, &quot;c&quot;, &quot;i&quot;, &quot;n&quot;, &quot;g&quot;, &quot; &quot;, &quot;e&quot;, &quot;l&quot;, &quot;i&quot;, &quot;t&quot;, &quot;.&quot;, &quot;M&quot;, &quot;a&quot;, &quot;u&quot;, &quot;r&quot;, &quot;i&quot;, &quot;s&quot;, &quot; &quot;, &quot;g&quot;, &quot;r&quot;, &quot;a&quot;, &quot;v&quot;, &quot;i&quot;, &quot;d&quot;, &quot;a&quot;, &quot; &quot;, &quot;q&quot;, &quot;u&quot;, &quot;a&quot;, &quot;m&quot;, &quot; &quot;, &quot;e&quot;, &quot;g&quot;, &quot;e&quot;, &quot;t&quot;, &quot; &quot;, &quot;l&quot;, &quot;i&quot;, &quot;g&quot;, &quot;u&quot;, &quot;l&quot;, &quot;a&quot;, &quot; &quot;, &quot;e&quot;, &quot;r&quot;, &quot;a&quot;, &quot;t&quot;, &quot; &quot;, &quot;c&quot;, &quot;u&quot;, &quot;r&quot;, &quot;a&quot;, &quot;e&quot;, &quot;.&quot;], &quot;id&quot;: &quot;node-9F59FE95-7758-4DF9-86F1-8A20806E04BD&quot;}
+DEBUG    urllib3.connectionpool:connectionpool.py:456 http://localhost:53361 &quot;POST /session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/element/node-9F59FE95-7758-4DF9-86F1-8A20806E04BD/value HTTP/1.1&quot; 200 14
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:380 Remote response: status=200 | data={&quot;value&quot;:null} | headers=HTTPHeaderDict({&#x27;Server&#x27;: &#x27;safaridriver [17613.3.9.1.5]&#x27;, &#x27;Content-Type&#x27;: &#x27;application/json; charset=utf-8&#x27;, &#x27;Date&#x27;: &#x27;Tue, 16 Aug 2022 09:17:55 GMT&#x27;, &#x27;Accept-Ranges&#x27;: &#x27;bytes&#x27;, &#x27;Content-Length&#x27;: &#x27;14&#x27;, &#x27;Cache-Control&#x27;: &#x27;no-cache&#x27;, &#x27;Connection&#x27;: &#x27;keep-alive&#x27;})
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:409 Finished Request
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:358 POST http://localhost:53361/session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/element {&quot;using&quot;: &quot;css selector&quot;, &quot;value&quot;: &quot;[id=\&quot;parameters.price.price\&quot;]&quot;}
+DEBUG    urllib3.connectionpool:connectionpool.py:456 http://localhost:53361 &quot;POST /session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/element HTTP/1.1&quot; 200 93
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:380 Remote response: status=200 | data={&quot;value&quot;:{&quot;element-6066-11e4-a52e-4f735466cecf&quot;:&quot;node-4E8074E3-5788-417A-B804-582746F5EE7C&quot;}} | headers=HTTPHeaderDict({&#x27;Server&#x27;: &#x27;safaridriver [17613.3.9.1.5]&#x27;, &#x27;Content-Type&#x27;: &#x27;application/json; charset=utf-8&#x27;, &#x27;Date&#x27;: &#x27;Tue, 16 Aug 2022 09:17:55 GMT&#x27;, &#x27;Accept-Ranges&#x27;: &#x27;bytes&#x27;, &#x27;Content-Length&#x27;: &#x27;93&#x27;, &#x27;Cache-Control&#x27;: &#x27;no-cache&#x27;, &#x27;Connection&#x27;: &#x27;keep-alive&#x27;})
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:409 Finished Request
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:358 POST http://localhost:53361/session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/element/node-4E8074E3-5788-417A-B804-582746F5EE7C/value {&quot;text&quot;: &quot;3000&quot;, &quot;value&quot;: [&quot;3&quot;, &quot;0&quot;, &quot;0&quot;, &quot;0&quot;], &quot;id&quot;: &quot;node-4E8074E3-5788-417A-B804-582746F5EE7C&quot;}
+DEBUG    urllib3.connectionpool:connectionpool.py:456 http://localhost:53361 &quot;POST /session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/element/node-4E8074E3-5788-417A-B804-582746F5EE7C/value HTTP/1.1&quot; 200 14
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:380 Remote response: status=200 | data={&quot;value&quot;:null} | headers=HTTPHeaderDict({&#x27;Server&#x27;: &#x27;safaridriver [17613.3.9.1.5]&#x27;, &#x27;Content-Type&#x27;: &#x27;application/json; charset=utf-8&#x27;, &#x27;Date&#x27;: &#x27;Tue, 16 Aug 2022 09:17:55 GMT&#x27;, &#x27;Accept-Ranges&#x27;: &#x27;bytes&#x27;, &#x27;Content-Length&#x27;: &#x27;14&#x27;, &#x27;Cache-Control&#x27;: &#x27;no-cache&#x27;, &#x27;Connection&#x27;: &#x27;keep-alive&#x27;})
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:409 Finished Request
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:358 POST http://localhost:53361/session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/element {&quot;using&quot;: &quot;xpath&quot;, &quot;value&quot;: &quot;//button[text()=\&quot;Prywatne\&quot;]&quot;}
+DEBUG    urllib3.connectionpool:connectionpool.py:456 http://localhost:53361 &quot;POST /session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/element HTTP/1.1&quot; 200 93
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:380 Remote response: status=200 | data={&quot;value&quot;:{&quot;element-6066-11e4-a52e-4f735466cecf&quot;:&quot;node-3637A130-F1C9-4E90-85A1-E309E4273F13&quot;}} | headers=HTTPHeaderDict({&#x27;Server&#x27;: &#x27;safaridriver [17613.3.9.1.5]&#x27;, &#x27;Content-Type&#x27;: &#x27;application/json; charset=utf-8&#x27;, &#x27;Date&#x27;: &#x27;Tue, 16 Aug 2022 09:17:55 GMT&#x27;, &#x27;Accept-Ranges&#x27;: &#x27;bytes&#x27;, &#x27;Content-Length&#x27;: &#x27;93&#x27;, &#x27;Cache-Control&#x27;: &#x27;no-cache&#x27;, &#x27;Connection&#x27;: &#x27;keep-alive&#x27;})
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:409 Finished Request
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:358 POST http://localhost:53361/session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/element/node-3637A130-F1C9-4E90-85A1-E309E4273F13/click {&quot;id&quot;: &quot;node-3637A130-F1C9-4E90-85A1-E309E4273F13&quot;}
+DEBUG    urllib3.connectionpool:connectionpool.py:456 http://localhost:53361 &quot;POST /session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/element/node-3637A130-F1C9-4E90-85A1-E309E4273F13/click HTTP/1.1&quot; 200 14
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:380 Remote response: status=200 | data={&quot;value&quot;:null} | headers=HTTPHeaderDict({&#x27;Server&#x27;: &#x27;safaridriver [17613.3.9.1.5]&#x27;, &#x27;Content-Type&#x27;: &#x27;application/json; charset=utf-8&#x27;, &#x27;Date&#x27;: &#x27;Tue, 16 Aug 2022 09:17:55 GMT&#x27;, &#x27;Accept-Ranges&#x27;: &#x27;bytes&#x27;, &#x27;Content-Length&#x27;: &#x27;14&#x27;, &#x27;Cache-Control&#x27;: &#x27;no-cache&#x27;, &#x27;Connection&#x27;: &#x27;keep-alive&#x27;})
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:409 Finished Request
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:358 POST http://localhost:53361/session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/element {&quot;using&quot;: &quot;xpath&quot;, &quot;value&quot;: &quot;//button[@placeholder=\&quot;Wybierz\&quot;]&quot;}
+DEBUG    urllib3.connectionpool:connectionpool.py:456 http://localhost:53361 &quot;POST /session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/element HTTP/1.1&quot; 200 93
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:380 Remote response: status=200 | data={&quot;value&quot;:{&quot;element-6066-11e4-a52e-4f735466cecf&quot;:&quot;node-DBAB7D90-F9D1-4BFF-B37B-EBDA60D958B3&quot;}} | headers=HTTPHeaderDict({&#x27;Server&#x27;: &#x27;safaridriver [17613.3.9.1.5]&#x27;, &#x27;Content-Type&#x27;: &#x27;application/json; charset=utf-8&#x27;, &#x27;Date&#x27;: &#x27;Tue, 16 Aug 2022 09:17:55 GMT&#x27;, &#x27;Accept-Ranges&#x27;: &#x27;bytes&#x27;, &#x27;Content-Length&#x27;: &#x27;93&#x27;, &#x27;Cache-Control&#x27;: &#x27;no-cache&#x27;, &#x27;Connection&#x27;: &#x27;keep-alive&#x27;})
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:409 Finished Request
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:358 POST http://localhost:53361/session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/element/node-DBAB7D90-F9D1-4BFF-B37B-EBDA60D958B3/click {&quot;id&quot;: &quot;node-DBAB7D90-F9D1-4BFF-B37B-EBDA60D958B3&quot;}
+DEBUG    urllib3.connectionpool:connectionpool.py:456 http://localhost:53361 &quot;POST /session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/element/node-DBAB7D90-F9D1-4BFF-B37B-EBDA60D958B3/click HTTP/1.1&quot; 200 14
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:380 Remote response: status=200 | data={&quot;value&quot;:null} | headers=HTTPHeaderDict({&#x27;Server&#x27;: &#x27;safaridriver [17613.3.9.1.5]&#x27;, &#x27;Content-Type&#x27;: &#x27;application/json; charset=utf-8&#x27;, &#x27;Date&#x27;: &#x27;Tue, 16 Aug 2022 09:17:55 GMT&#x27;, &#x27;Accept-Ranges&#x27;: &#x27;bytes&#x27;, &#x27;Content-Length&#x27;: &#x27;14&#x27;, &#x27;Cache-Control&#x27;: &#x27;no-cache&#x27;, &#x27;Connection&#x27;: &#x27;keep-alive&#x27;})
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:409 Finished Request
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:358 POST http://localhost:53361/session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/element {&quot;using&quot;: &quot;xpath&quot;, &quot;value&quot;: &quot;//*[@id=&#x27;posting-form&#x27;]/main/div[1]/div[4]/div/div[2]/ul/li[2]/div/div/ul/li[1]&quot;}
+DEBUG    urllib3.connectionpool:connectionpool.py:456 http://localhost:53361 &quot;POST /session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/element HTTP/1.1&quot; 200 93
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:380 Remote response: status=200 | data={&quot;value&quot;:{&quot;element-6066-11e4-a52e-4f735466cecf&quot;:&quot;node-D91D1E41-EB46-4D27-BE15-85E65C21679E&quot;}} | headers=HTTPHeaderDict({&#x27;Server&#x27;: &#x27;safaridriver [17613.3.9.1.5]&#x27;, &#x27;Content-Type&#x27;: &#x27;application/json; charset=utf-8&#x27;, &#x27;Date&#x27;: &#x27;Tue, 16 Aug 2022 09:17:55 GMT&#x27;, &#x27;Accept-Ranges&#x27;: &#x27;bytes&#x27;, &#x27;Content-Length&#x27;: &#x27;93&#x27;, &#x27;Cache-Control&#x27;: &#x27;no-cache&#x27;, &#x27;Connection&#x27;: &#x27;keep-alive&#x27;})
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:409 Finished Request
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:358 POST http://localhost:53361/session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/element/node-D91D1E41-EB46-4D27-BE15-85E65C21679E/click {&quot;id&quot;: &quot;node-D91D1E41-EB46-4D27-BE15-85E65C21679E&quot;}
+DEBUG    urllib3.connectionpool:connectionpool.py:456 http://localhost:53361 &quot;POST /session/163D5AEA-601B-4BF0-A617-F6C3C9D90622/element/node-D91D1E41-EB46-4D27-BE15-85E65C21679E/click HTTP/1.1&quot; 400 75
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:380 Remote response: status=400 | data={&quot;value&quot;:{&quot;error&quot;:&quot;element not interactable&quot;,&quot;message&quot;:&quot;&quot;,&quot;stacktrace&quot;:&quot;&quot;}} | headers=HTTPHeaderDict({&#x27;Server&#x27;: &#x27;safaridriver [17613.3.9.1.5]&#x27;, &#x27;Content-Type&#x27;: &#x27;application/json; charset=utf-8&#x27;, &#x27;Date&#x27;: &#x27;Tue, 16 Aug 2022 09:17:55 GMT&#x27;, &#x27;Accept-Ranges&#x27;: &#x27;bytes&#x27;, &#x27;Content-Length&#x27;: &#x27;75&#x27;, &#x27;Cache-Control&#x27;: &#x27;no-cache&#x27;, &#x27;Connection&#x27;: &#x27;keep-alive&#x27;})
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:409 Finished Request<br/> -----------------------------Captured log teardown------------------------------ <br/>INFO     tests._logger:_logger.py:18 Execution of Test Case: TEST_ADD_ADVERT[ADVERT0] has ended.
+INFO     tests._logger:_logger.py:19 DURATION: 4.31 sec.
+INFO     tests._logger:_logger.py:23 RESULT: FAILED
+INFO     tests._logger:conftest.py:25 Closing instance of Webdriver.
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:358 DELETE http://localhost:53361/session/163D5AEA-601B-4BF0-A617-F6C3C9D90622 {}
+DEBUG    urllib3.connectionpool:connectionpool.py:456 http://localhost:53361 &quot;DELETE /session/163D5AEA-601B-4BF0-A617-F6C3C9D90622 HTTP/1.1&quot; 200 14
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:380 Remote response: status=200 | data={&quot;value&quot;:null} | headers=HTTPHeaderDict({&#x27;Server&#x27;: &#x27;safaridriver [17613.3.9.1.5]&#x27;, &#x27;Content-Type&#x27;: &#x27;application/json; charset=utf-8&#x27;, &#x27;Date&#x27;: &#x27;Tue, 16 Aug 2022 09:17:55 GMT&#x27;, &#x27;Accept-Ranges&#x27;: &#x27;bytes&#x27;, &#x27;Content-Length&#x27;: &#x27;14&#x27;, &#x27;Cache-Control&#x27;: &#x27;no-cache&#x27;, &#x27;Connection&#x27;: &#x27;keep-alive&#x27;})
+DEBUG    selenium.webdriver.remote.remote_connection:remote_connection.py:409 Finished Request<br/></div></td></tr></tbody></table></body></html>
